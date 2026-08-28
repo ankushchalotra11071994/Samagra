@@ -1,3 +1,4 @@
+cat > .gitignore << 'EOF'
 # .NET
 bin/
 obj/
@@ -13,6 +14,11 @@ dist/
 
 # macOS
 .DS_Store
-\
+
 # VS Code
 .vscode/
+EOF
+
+git add .gitignore
+git commit -m "Clean up gitignore"
+git push
