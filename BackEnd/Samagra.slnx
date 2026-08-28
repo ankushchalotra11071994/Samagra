@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/Samagra.Application.Tests/Samagra.Application.Tests.csproj" />
+  </Folder>
+  <Project Path="Samagra.API/Samagra.API.csproj" />
+  <Project Path="Samagra.Application/Samagra.Application.csproj" />
+  <Project Path="Samagra.Domain/Samagra.Domain.csproj" />
+  <Project Path="Samagra.Infrastructure/Samagra.Infrastructure.csproj" />
+</Solution>
