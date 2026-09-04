@@ -1,32 +1,37 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using Samagra.Application.Interfaces;
+using Samagra.Infrastructure.Identity;
+using Samagra.API.Contracts;
+namespace Samagra.API.Controllers;
 
-namespace Samagra.API.Controllers
+[ApiController]
+[Route("api/auth")]
+public class LoginController : ControllerBase
 {
-    [Route("[controller]")]
-    public class LoginController : Controller
+    private readonly UserManager<ApplicationUser> _users;
+    private readonly ITokenService _tokens;
+
+    private readonly IBuyerRepository _buyers;
+    public LoginController(UserManager<ApplicationUser> user,
+    IBuyerRepository buyers, ITokenService tokens)
     {
-        private readonly ILogger<LoginController> _logger;
+        _users = user;
+        _tokens = tokens;
+        _buyers = buyers;
+    }
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        var user = await _users.FindByEmailAsync(request.Email);
 
-        public LoginController(ILogger<LoginController> logger)
-        {
-            _logger = logger;
-        }
+        if (user is null || !await _users.CheckPasswordAsync(user, request.Password))
+            return Unauthorized(new { error = "Invalid credentials." });
 
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View("Error!");
-        }
+        var roles = await _users.GetRolesAsync(user);
+        var token = _tokens.CreateAccessToken(user.Id, user.Email!, user.BuyerId, roles);
+        return Ok(new AuthResponse(token, DateTimeOffset.UtcNow.AddMinutes(60)));
     }
 }
+
+public record LoginRequest(string Email, string Password);
