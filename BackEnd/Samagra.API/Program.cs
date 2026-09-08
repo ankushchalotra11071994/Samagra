@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.IdentityModel.Tokens;
 using Samagra.Application.Interfaces;
 using Samagra.Infrastructure.Data;
@@ -36,13 +37,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromSeconds(30)
         };
     });
-
+builder.Services.AddMemoryCache();
 builder.Services.AddAuthorization();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IBuyerRepository, BuyerRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddApplicationInsightsTelemetry();
 builder.Services
     .AddOptions<JwtOptions>()
     .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
@@ -58,7 +60,30 @@ builder.Services
 .AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")  // Vite का default port
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();                    // ← ज़रूरी
+    });
+});
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "Samagra:";   // keys का prefix
+});
+builder.Services.AddHybridCache(options =>
+{
+    options.DefaultEntryOptions = new HybridCacheEntryOptions
+    {
+        Expiration = TimeSpan.FromSeconds(30),       // L2 (Redis)
+        LocalCacheExpiration = TimeSpan.FromSeconds(10)  // L1 (memory)
+    };
+});
+builder.Services.AddOutputCache();
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
@@ -84,6 +109,25 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// middleware में
+app.UseCors("AllowReact");
 app.MapControllers();
+app.UseOutputCache();
+app.MapGet("/api/fast", () => Results.Ok("fast"));
+
+// हर request slow — ये p50 को ऊपर उठाएगा
+app.MapGet("/api/always-slow", async () =>
+{
+    await Task.Delay(2000);
+    return Results.Ok("always slow");
+});
+
+// सिर्फ 5% requests slow — ये सिर्फ p99 को ऊपर उठाएगा
+app.MapGet("/api/sometimes-slow", async () =>
+{
+    if (Random.Shared.Next(100) < 5)
+        await Task.Delay(4000);
+    return Results.Ok("sometimes slow");
+});
 
 app.Run();
