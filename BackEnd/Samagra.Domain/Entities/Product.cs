@@ -13,4 +13,5 @@ public class Product
     // foreign key + navigation
     public Guid CategoryId { get; set; }
     public Category Category { get; set; } = null!;
+     public string ImageUrl { get; set; } = null!;
 }

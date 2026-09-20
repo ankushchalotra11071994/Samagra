@@ -12,6 +12,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     public DbSet<Buyer> Buyers => Set<Buyer>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<Order>     Orders     { get; set; }
+public DbSet<OrderItem> OrderItems { get; set; }
+public DbSet<Payment>   Payments   { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

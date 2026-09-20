@@ -1,7 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Products from './pages/Products';
-
+import Login from "./pages/Login"; 
+import HomePage from './pages/HomePage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import CartPage from './pages/CartPage';
+import OrderPage from './pages/OrderPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
 // Routes के अंदर
 
 export default function App() {
@@ -10,8 +13,11 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/dashboard" element={<div className="p-8">Dashboard</div>} />
+         <Route path="/Home" element={<HomePage />} /> 
+         <Route path="/cart" element={<CartPage />} />
+         <Route path="/order" element={<OrderPage />} />
+         <Route path="/payment-success/:id" element={<PaymentSuccessPage />} />
+          <Route path="/products/:id"    element={<ProductDetailPage />} /> 
       </Routes>
     </BrowserRouter>
   );
