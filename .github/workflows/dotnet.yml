@@ -1,7 +1,4 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: Samagra CI
 
 on:
   push:
@@ -10,19 +7,51 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
 
+  # ─────────────────────────────────────────
+  # JOB 1 — .NET Backend Build & Test
+  # ─────────────────────────────────────────
+  build-backend:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: Samagra/BackEnd
+
     - name: Build
       run: dotnet build --no-restore
+      working-directory: Samagra/BackEnd
+
     - name: Test
       run: dotnet test --no-build --verbosity normal
+      working-directory: Samagra/BackEnd
+
+  # ─────────────────────────────────────────
+  # JOB 2 — React Frontend Build
+  # ─────────────────────────────────────────
+  build-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: Samagra/FrontEnd/Samagra-app
+
+    - name: Build React App
+      run: npm run build
+      working-directory: Samagra/FrontEnd/Samagra-app
