@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Samagra.Application\Samagra.Application.csproj" />
     <ProjectReference Include="..\Samagra.Infrastructure\Samagra.Infrastructure.csproj" />
+    <ProjectReference Include="..\Samagra.AI\Samagra.AI.csproj" />
   </ItemGroup>
 
 </Project>
