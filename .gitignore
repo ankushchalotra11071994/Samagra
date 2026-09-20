@@ -22,3 +22,4 @@ EOF
 git add .gitignore
 git commit -m "Clean up gitignore"
 git push
+**/appsettings.Development.json
