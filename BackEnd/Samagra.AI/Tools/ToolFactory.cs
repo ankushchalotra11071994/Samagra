@@ -4,7 +4,7 @@ namespace Samagra.AI.Tools;
 
 internal static class ToolFactory
 {
-    public static IList<AITool> CreateOrderTools(OrderTools tools,PolicyTools policy) =>
+    public static IList<AITool> CreateAll(OrderTools tools,PolicyTools policy) =>
     [
         AIFunctionFactory.Create(
             tools.GetMyRecentOrdersAsync,
