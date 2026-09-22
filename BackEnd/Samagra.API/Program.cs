@@ -9,6 +9,9 @@ using Samagra.Infrastructure.Data;
 using Samagra.Infrastructure.Identity;
 using Samagra.Infrastructure.Repositories;  
 using Samagra.AI;
+using Samagra.API.ExceptionHandlers;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -23,7 +26,7 @@ builder.Services.AddControllers();
 var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("Jwt section is missing from configuration.");
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
         o.TokenValidationParameters = new TokenValidationParameters
@@ -37,14 +40,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
             ClockSkew = TimeSpan.FromSeconds(30)
         };
+
+        // ← ये नया है
+        o.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Cookies.TryGetValue("access_token", out var token))
+                {
+                    context.Token = token;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddMemoryCache();
 builder.Services.AddAuthorization();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IBuyerRepository, BuyerRepository>();
+builder.Services.AddScoped<IAiUsageRecorder, AiUsageRecorder>();   // ← नई
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IAiUsageRecorder, AiUsageRecorder>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services
     .AddOptions<JwtOptions>()
@@ -86,6 +105,8 @@ builder.Services.AddHybridCache(options =>
 });
 builder.Services.AddOutputCache();
 builder.Services.AddAiServices(builder.Configuration);
+builder.Services.AddExceptionHandler<AiBudgetExceptionHandler>();
+builder.Services.AddProblemDetails();
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
@@ -107,12 +128,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseExceptionHandler();
+// middleware में
+app.UseCors("AllowReact");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// middleware में
-app.UseCors("AllowReact");
 app.MapControllers();
 app.UseOutputCache();
 app.MapGet("/api/fast", () => Results.Ok("fast"));

@@ -49,13 +49,25 @@ public sealed class AiController : ControllerBase
     }
 
     [HttpPost("ask-rag")]
-public async Task<IActionResult> AskRag(
+    public async Task<IActionResult> AskRag(
     [FromBody] AskRequest request,
     CancellationToken ct)
-{
-    var answer = await _assistant.AskWithRagAsync(request.Question, ct);
-    return Ok(new AskResponse(answer));
-}
+    {
+        var answer = await _assistant.AskWithRagAsync(request.Question, ct);
+        return Ok(new AskResponse(answer));
+    }
+
+    [HttpPost("ask-tools")]
+    public async Task<IActionResult> AskTools(
+        [FromBody] AskRequest request,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Question))
+            return BadRequest("Question is required.");
+
+        var answer = await _assistant.AskWithToolsAsync(request.Question, ct);
+        return Ok(new AskResponse(answer));
+    }
 }
 public sealed record AskRequest(string Question);
 public sealed record AskResponse(string Answer);

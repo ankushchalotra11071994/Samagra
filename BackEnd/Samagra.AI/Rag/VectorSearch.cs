@@ -2,7 +2,7 @@ using Microsoft.Extensions.AI;
 using Npgsql;
 using Pgvector;
 using Samagra.Application.Interfaces;
-
+using Samagra.AI.Middleware;
 namespace Samagra.AI.Rag;
 
 internal sealed class VectorSearch : IVectorSearch
@@ -20,9 +20,12 @@ internal sealed class VectorSearch : IVectorSearch
 
     public async Task<IReadOnlyList<SearchResult>> SearchAsync(
         string query, int topK = 3, CancellationToken ct = default)
-    {
+    {  var options = new EmbeddingGenerationOptions
+        {
+            AdditionalProperties = new() { [CostTrackingChatClient.FeatureKey] = "search" }
+        };
         // 1. सवाल का embedding बनाओ
-        var queryEmbedding = await _embedder.GenerateAsync(query, cancellationToken: ct);
+        var queryEmbedding = await _embedder.GenerateAsync(query, options, cancellationToken: ct);
 
         var builder = new NpgsqlDataSourceBuilder(_connectionString);
         builder.UseVector();

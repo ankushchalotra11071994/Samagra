@@ -2,7 +2,7 @@ using Microsoft.Extensions.AI;
 using Npgsql;
 using Pgvector;
 using Samagra.Application.Interfaces;
-
+using Samagra.AI.Middleware;
 namespace Samagra.AI.Rag;
 
 internal sealed class DocumentIndexer : IDocumentIndexer
@@ -19,9 +19,15 @@ internal sealed class DocumentIndexer : IDocumentIndexer
 
  public async Task<int> IndexAsync(string source, string content, CancellationToken ct = default)
 {
-    var chunks = TextChunker.Chunk(content);
-    var embeddings = await _embedder.GenerateAsync(chunks, cancellationToken: ct);
 
+      var options = new EmbeddingGenerationOptions
+{
+    AdditionalProperties = new() { [CostTrackingChatClient.FeatureKey] = "indexing" }  // या "search"
+};
+
+    var chunks = TextChunker.Chunk(content);
+    var embeddings = await _embedder.GenerateAsync(chunks, options, cancellationToken: ct);
+  
     var builder = new NpgsqlDataSourceBuilder(_connectionString);
     builder.UseVector();                          // ← अलग line, return value छोड़ दो
     await using var dataSource = builder.Build();
