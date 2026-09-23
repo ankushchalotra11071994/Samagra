@@ -1,6 +1,6 @@
 namespace Samagra.AI.Rag;
 
-internal static class TextChunker
+public static class TextChunker
 {
     public static IReadOnlyList<string> Chunk(
         string text,

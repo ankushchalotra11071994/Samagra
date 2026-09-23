@@ -1,0 +1,32 @@
+[
+  {
+    "id": "Q01",
+    "question": "How many days do I have to return a product?",
+    "expectedSource": "return-policy",
+    "expectedFacts": ["30"]
+  },
+  {
+    "id": "Q02",
+    "question": "How long does delivery take to a metro city?",
+    "expectedSource": "shipping-policy",
+    "expectedFacts": ["3", "5"]
+  },
+  {
+    "id": "Q03",
+    "question": "What is the warranty on a washing machine?",
+    "expectedSource": "warranty-policy",
+    "expectedFacts": ["24"]
+  },
+  {
+    "id": "Q04",
+    "question": "paise kab wapas milenge",
+    "expectedSource": "return-policy",
+    "expectedFacts": ["5", "7"]
+  },
+  {
+    "id": "Q05",
+    "question": "Do you sell iPhones?",
+    "expectedSource": null,
+    "shouldRefuse": true
+  }
+]
