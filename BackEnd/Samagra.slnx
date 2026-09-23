@@ -3,6 +3,7 @@
     <Project Path="tests/Samagra.Application.Tests/Samagra.Application.Tests.csproj" />
   </Folder>
   <Project Path="Samagra.AI/Samagra.AI.csproj" />
+  <Project Path="Samagra.AiEval/Samagra.AiEval.csproj" />
   <Project Path="Samagra.API/Samagra.API.csproj" />
   <Project Path="Samagra.Application/Samagra.Application.csproj" />
   <Project Path="Samagra.Domain/Samagra.Domain.csproj" />
