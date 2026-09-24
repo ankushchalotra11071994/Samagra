@@ -11,7 +11,8 @@ using Samagra.AI.Options;
 using Samagra.AI.Rag;
 using Samagra.AI.Tools;
 using Samagra.Application.Interfaces;
-
+using Samagra.AI.Agents;
+using Samagra.AI.Mcp;
 namespace Samagra.AI;
 
 public static class DependencyInjection
@@ -87,8 +88,15 @@ public static class DependencyInjection
         // Tools
         services.AddScoped<OrderTools>();
         services.AddScoped<PolicyTools>();
+
+        
         // Assistant
         services.AddScoped<IAiAssistant, AiAssistant>();
+
+        // Support agent
+        services.AddMemoryCache(); 
+services.AddSingleton(options);
+services.AddScoped<IAgentChat, SupportAgent>();
 
         return services;
     }

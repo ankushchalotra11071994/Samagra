@@ -108,6 +108,14 @@ builder.Services.AddAiServices(builder.Configuration);
 builder.Services.AddExceptionHandler<UnsafeInputExceptionHandler>();
 builder.Services.AddExceptionHandler<AiBudgetExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddAiServices(builder.Configuration);
+
+builder.Services
+    .AddMcpServer()
+    .WithHttpTransport()
+    .WithTools<Samagra.AI.Mcp.OrderMcpTools>()
+.WithTools<Samagra.AI.Mcp.PolicyMcpTools>();
+ 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
@@ -138,21 +146,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.UseOutputCache();
-app.MapGet("/api/fast", () => Results.Ok("fast"));
-
-// हर request slow — ये p50 को ऊपर उठाएगा
-app.MapGet("/api/always-slow", async () =>
-{
-    await Task.Delay(2000);
-    return Results.Ok("always slow");
-});
-
-// सिर्फ 5% requests slow — ये सिर्फ p99 को ऊपर उठाएगा
-app.MapGet("/api/sometimes-slow", async () =>
-{
-    if (Random.Shared.Next(100) < 5)
-        await Task.Delay(4000);
-    return Results.Ok("sometimes slow");
-});
+ 
+app.MapMcp("/mcp").RequireAuthorization();
 
 app.Run();

@@ -5,7 +5,7 @@ using Samagra.Infrastructure.Data;
 
 namespace Samagra.AI.Tools;
 
-internal sealed class OrderTools
+public sealed class OrderTools
 {
     private readonly AppDbContext _db;
     private readonly IHttpContextAccessor _http;

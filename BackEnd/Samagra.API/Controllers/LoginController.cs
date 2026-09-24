@@ -7,6 +7,8 @@ using Samagra.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Samagra.Domain.Entities;
 namespace Samagra.API.Controllers;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/auth")]
@@ -39,7 +41,7 @@ public class LoginController : ControllerBase
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.None,
+            SameSite = SameSiteMode.Lax,
             Expires = DateTime.UtcNow.AddHours(1)
         });
         return Ok(new
@@ -49,7 +51,21 @@ public class LoginController : ControllerBase
             expiresAt
         });
     }
+ 
+ 
+  [Authorize]
+[HttpPost("mcp-token")]
+public async Task<IActionResult> CreateMcpToken()
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("uid");
+    var user = await _users.FindByIdAsync(userId!);
+    if (user is null) return Unauthorized();
 
+    var roles = await _users.GetRolesAsync(user);
+    var token = _tokens.CreateAccessToken(user.Id, user.Email!, user.BuyerId, roles);
+
+    return Ok(new { token });
+}
 
 }
 

@@ -8,7 +8,7 @@ public sealed class AiOptions
     public string ApiKey { get; init; } = string.Empty;
     public string ChatModel { get; init; } = "gpt-4.1-mini";
      public string EmbeddingModel { get; init; } = "text-embedding-3-small";
-
+  public string McpServerUrl { get; init; } = "http://localhost:5109/mcp";
     // नया
     public Dictionary<string, ModelPricing> Pricing { get; init; } = new();
     public decimal DailyBudgetPerUserUsd { get; init; } = 0.10m;

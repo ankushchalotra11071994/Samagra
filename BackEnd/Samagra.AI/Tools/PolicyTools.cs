@@ -2,7 +2,7 @@ using Samagra.Application.Interfaces;
 
 namespace Samagra.AI.Tools;
 
-internal sealed class PolicyTools
+public sealed class PolicyTools
 {
     private const double MaxDistance = 0.75;
 

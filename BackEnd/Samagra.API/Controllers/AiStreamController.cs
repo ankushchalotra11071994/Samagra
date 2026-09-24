@@ -10,9 +10,9 @@ namespace Samagra.API.Controllers;
 [Authorize]
 public sealed class AiStreamController : ControllerBase
 {
-    private readonly IAiAssistant _assistant;
+    private readonly IAgentChat _agent;
 
-    public AiStreamController(IAiAssistant assistant) => _assistant = assistant;
+    public AiStreamController(IAgentChat agent) => _agent = agent;
 
     [HttpPost]
     public async Task Stream([FromBody] StreamRequest request, CancellationToken ct)
@@ -28,19 +28,17 @@ public sealed class AiStreamController : ControllerBase
             return;
         }
 
+        var conversationId = request.ConversationId ?? Guid.NewGuid().ToString("N");
+        await WriteEventAsync("conversation", conversationId, ct);
+
         try
         {
-            await foreach (var chunk in _assistant.StreamWithToolsAsync(request.Question, ct))
-            {
+            await foreach (var chunk in _agent.StreamAsync(conversationId, request.Question, ct))
                 await WriteEventAsync("token", chunk, ct);
-            }
 
             await WriteEventAsync("done", "", ct);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            // client चला गया — कुछ मत करो
-        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
         catch (Exception ex)
         {
             await WriteEventAsync("error", ex.Message, CancellationToken.None);
@@ -51,16 +49,13 @@ public sealed class AiStreamController : ControllerBase
     {
         var sb = new StringBuilder();
         sb.Append("event: ").Append(eventName).Append('\n');
-
-        // multi-line data के लिए हर line पर "data: "
         foreach (var line in data.Split('\n'))
             sb.Append("data: ").Append(line).Append('\n');
-
-        sb.Append('\n');   // खाली line = event खत्म
+        sb.Append('\n');
 
         await Response.WriteAsync(sb.ToString(), ct);
         await Response.Body.FlushAsync(ct);
     }
 }
 
-public sealed record StreamRequest(string Question);
+public sealed record StreamRequest(string? ConversationId, string Question);
