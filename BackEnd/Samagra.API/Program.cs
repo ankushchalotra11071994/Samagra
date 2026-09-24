@@ -105,6 +105,7 @@ builder.Services.AddHybridCache(options =>
 });
 builder.Services.AddOutputCache();
 builder.Services.AddAiServices(builder.Configuration);
+builder.Services.AddExceptionHandler<UnsafeInputExceptionHandler>();
 builder.Services.AddExceptionHandler<AiBudgetExceptionHandler>();
 builder.Services.AddProblemDetails();
 var app = builder.Build();

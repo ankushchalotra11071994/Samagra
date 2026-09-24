@@ -1,5 +1,5 @@
 // src/pages/PaymentSuccessPage.jsx
-
+import AiChat from '../components/AiChat';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function PaymentSuccessPage() {
@@ -36,6 +36,7 @@ export default function PaymentSuccessPage() {
         </button>
 
       </div>
+          <AiChat />   
     </div>
   );
 }

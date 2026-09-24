@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Samagra.AI.Options;
 using Samagra.Application.Interfaces;
 using Samagra.Domain.Entities;
-
+using System.Runtime.CompilerServices;
 namespace Samagra.AI.Middleware;
 
 internal sealed class CostTrackingChatClient : DelegatingChatClient
@@ -60,6 +60,39 @@ internal sealed class CostTrackingChatClient : DelegatingChatClient
             await RecordAsync(response, feature, sw.ElapsedMilliseconds);
         }
     }
+    public override async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
+    IEnumerable<ChatMessage> messages,
+    ChatOptions? options = null,
+    [EnumeratorCancellation] CancellationToken cancellationToken = default)
+{
+    var feature = "chat";
+    if (options?.AdditionalProperties?.TryGetValue(FeatureKey, out var f) == true)
+    {
+        feature = f?.ToString() ?? "chat";
+        options = options.Clone();
+        options.AdditionalProperties!.Remove(FeatureKey);
+    }
+
+    var sw = Stopwatch.StartNew();
+    var updates = new List<ChatResponseUpdate>();
+
+    try
+    {
+        await foreach (var update in base.GetStreamingResponseAsync(messages, options, cancellationToken))
+        {
+            updates.Add(update);
+            yield return update;
+        }
+    }
+    finally
+    {
+        sw.Stop();
+
+        // सारे updates जोड़कर एक ChatResponse बनाओ — usage उसी में आता है
+        var response = updates.Count > 0 ? updates.ToChatResponse() : null;
+        await RecordAsync(response, feature, sw.ElapsedMilliseconds);
+    }
+}
 
     private async Task RecordAsync(ChatResponse? response, string feature, long elapsedMs)
     {

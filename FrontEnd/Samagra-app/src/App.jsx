@@ -5,6 +5,10 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import OrderPage from './pages/OrderPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import AiChat from './components/AiChat';
+
+// routes में
+<Route path="/ai" element={<AiChat />} />
 // Routes के अंदर
 
 export default function App() {
@@ -18,6 +22,7 @@ export default function App() {
          <Route path="/order" element={<OrderPage />} />
          <Route path="/payment-success/:id" element={<PaymentSuccessPage />} />
           <Route path="/products/:id"    element={<ProductDetailPage />} /> 
+          <Route path="/ai" element={<AiChat />} />
       </Routes>
     </BrowserRouter>
   );

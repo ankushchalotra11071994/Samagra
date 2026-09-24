@@ -11,7 +11,7 @@ public sealed class AiController : ControllerBase
     private readonly IDocumentIndexer _indexer;
     private readonly IVectorSearch _search;
 
-    public AiController(IAiAssistant assistant, IDocumentIndexer indexer, IVectorSearch search)
+    public AiController(IAiAssistant assistant, IDocumentIndexer indexer, IVectorSearch  search)
     {
         _assistant = assistant;
         _indexer = indexer;
@@ -33,7 +33,7 @@ public sealed class AiController : ControllerBase
     [FromBody] IndexRequest request,
     CancellationToken ct)
     {
-        var count = await _indexer.IndexAsync(request.Source, request.Content, ct);
+        var count = await _indexer.IndexAsync(request.Source, request.Content, ct: ct);
         return Ok(new { chunksIndexed = count });
     }
 

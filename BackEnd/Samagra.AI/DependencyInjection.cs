@@ -39,23 +39,26 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
 
         // Chat — budget guard → function invocation → cost tracking → Azure
-        services.AddSingleton<IChatClient>(sp =>
-            azureClient.GetChatClient(options.ChatModel)
-                .AsIChatClient()
-                .AsBuilder()
-                .Use(inner => new BudgetGuardChatClient(
-                    inner,
-                    sp.GetRequiredService<IServiceScopeFactory>(),
-                    sp.GetRequiredService<IHttpContextAccessor>(),
-                    options))
-                .UseFunctionInvocation()
-                .Use(inner => new CostTrackingChatClient(
-                    inner,
-                    sp.GetRequiredService<IServiceScopeFactory>(),
-                    sp.GetRequiredService<IHttpContextAccessor>(),
-                    options,
-                    sp.GetRequiredService<ILogger<CostTrackingChatClient>>()))
-                .Build(sp));
+      services.AddSingleton<IChatClient>(sp =>
+    azureClient.GetChatClient(options.ChatModel)
+        .AsIChatClient()
+        .AsBuilder()
+        .Use(inner => new BudgetGuardChatClient(
+            inner,
+            sp.GetRequiredService<IServiceScopeFactory>(),
+            sp.GetRequiredService<IHttpContextAccessor>(),
+            options))
+        .Use(inner => new InputGuardChatClient(
+            inner,
+            sp.GetRequiredService<ILogger<InputGuardChatClient>>()))
+        .UseFunctionInvocation()
+        .Use(inner => new CostTrackingChatClient(
+            inner,
+            sp.GetRequiredService<IServiceScopeFactory>(),
+            sp.GetRequiredService<IHttpContextAccessor>(),
+            options,
+            sp.GetRequiredService<ILogger<CostTrackingChatClient>>()))
+        .Build(sp));
 
         // Embeddings — cost tracking के साथ
         services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
