@@ -100,7 +100,7 @@ internal sealed class CostTrackingChatClient : DelegatingChatClient
         {
             var input = (int)(response?.Usage?.InputTokenCount ?? 0);
             var output = (int)(response?.Usage?.OutputTokenCount ?? 0);
-            var model = _options.ChatModel;
+            var model = _options.ActiveChatModel;
 
             var cost = 0m;
             if (_options.Pricing.TryGetValue(model, out var price))

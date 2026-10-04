@@ -30,11 +30,7 @@ internal sealed class SupportAgent : IAgentChat
     private readonly IDistributedCache _sessions;
     private readonly AiOptions _options;
 
-    public SupportAgent(
-        IChatClient chatClient,
-        IHttpContextAccessor http,
-        IDistributedCache sessions,
-        AiOptions options)
+    public SupportAgent(IChatClient chatClient, IHttpContextAccessor http, IDistributedCache sessions, AiOptions options)
     {
         _chatClient = chatClient;
         _http = http;
@@ -42,10 +38,7 @@ internal sealed class SupportAgent : IAgentChat
         _options = options;
     }
 
-    public async Task<AgentReply> ChatAsync(
-        string? conversationId,
-        string message,
-        CancellationToken ct = default)
+    public async Task<AgentReply> ChatAsync(string? conversationId, string message, CancellationToken ct = default)
     {
         var (userId, token) = GetCaller();
 
@@ -56,55 +49,31 @@ internal sealed class SupportAgent : IAgentChat
 
         var key = SessionKey(userId, conversationId);
 
-        // Redis से existing session लाओ,
-        // नहीं मिला तो नया AgentSession बनाओ.
-        var session = await GetOrCreateSessionAsync(
-            agent,
-            key,
-            ct);
+        // Redis से existing session लाओ, नहीं मिला तो नया AgentSession बनाओ.
+        var session = await GetOrCreateSessionAsync(agent, key, ct);
 
-        var response = await agent.RunAsync(
-            message,
-            session,
-            cancellationToken: ct);
+        var response = await agent.RunAsync(message, session, cancellationToken: ct);
 
         // Updated conversation state Redis में save करो.
-        await SaveSessionAsync(
-            agent,
-            key,
-            session,
-            ct);
+        await SaveSessionAsync(agent, key, session, ct);
 
-        return new AgentReply(
-            conversationId,
-            response.Text);
+        return new AgentReply(conversationId, response.Text);
     }
 
-    public async IAsyncEnumerable<string> StreamAsync(
-        string conversationId,
-        string message,
-        [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<string> StreamAsync(string conversationId, string message, [EnumeratorCancellation] CancellationToken ct = default)
     {
         var (userId, token) = GetCaller();
 
-        await using var mcp = await ConnectMcpAsync(token, ct);
+        await using McpClient? mcp = await ConnectMcpAsync(token, ct);
         var agent = await CreateAgentAsync(mcp, ct);
 
-        var key = SessionKey(
-            userId,
-            conversationId);
+        var key = SessionKey(userId, conversationId);
 
-        var session = await GetOrCreateSessionAsync(
-            agent,
-            key,
-            ct);
+        var session = await GetOrCreateSessionAsync(agent, key, ct);
 
         try
         {
-            await foreach (var update in agent.RunStreamingAsync(
-                message,
-                session,
-                cancellationToken: ct))
+            await foreach (var update in agent.RunStreamingAsync(message, session, cancellationToken: ct))
             {
                 if (!string.IsNullOrEmpty(update.Text))
                 {
@@ -121,11 +90,7 @@ internal sealed class SupportAgent : IAgentChat
              * We still want to persist whatever conversation state
              * the agent has produced so far.
              */
-            await SaveSessionAsync(
-                agent,
-                key,
-                session,
-                CancellationToken.None);
+            await SaveSessionAsync(agent, key, session, CancellationToken.None);
         }
     }
 
@@ -133,14 +98,9 @@ internal sealed class SupportAgent : IAgentChat
     // Session / Redis
     // ---------------------------------------------------------
 
-    private async Task<AgentSession> GetOrCreateSessionAsync(
-        AIAgent agent,
-        string key,
-        CancellationToken ct)
+    private async Task<AgentSession> GetOrCreateSessionAsync(AIAgent agent, string key, CancellationToken ct)
     {
-        var cachedSession = await _sessions.GetStringAsync(
-            key,
-            ct);
+        var cachedSession = await _sessions.GetStringAsync(key, ct);
 
         // Cache MISS
         if (string.IsNullOrWhiteSpace(cachedSession))
@@ -151,30 +111,15 @@ internal sealed class SupportAgent : IAgentChat
         // Cache HIT
         using var document = JsonDocument.Parse(cachedSession);
 
-        return await agent.DeserializeSessionAsync(
-            document.RootElement.Clone(),
-            cancellationToken: ct);
+        return await agent.DeserializeSessionAsync(document.RootElement.Clone(), cancellationToken: ct);
     }
 
-    private async Task SaveSessionAsync(
-        AIAgent agent,
-        string key,
-        AgentSession session,
-        CancellationToken ct)
+    private async Task SaveSessionAsync(AIAgent agent, string key, AgentSession session, CancellationToken ct)
     {
-        var serializedSession = await agent.SerializeSessionAsync(
-            session,
-            cancellationToken: ct);
+        var serializedSession = await agent.SerializeSessionAsync(session, cancellationToken: ct);
 
-        await _sessions.SetStringAsync(
-            key,
-            serializedSession.GetRawText(),
-            new DistributedCacheEntryOptions
-            {
-                // Every activity extends session lifetime by 30 minutes.
-                SlidingExpiration = SessionLifetime
-            },
-            ct);
+        // Every activity extends session lifetime by 30 minutes.
+        await _sessions.SetStringAsync(key, serializedSession.GetRawText(), new DistributedCacheEntryOptions { SlidingExpiration = SessionLifetime }, ct);
     }
 
     // ---------------------------------------------------------
@@ -183,22 +128,12 @@ internal sealed class SupportAgent : IAgentChat
 
     private (string UserId, string Token) GetCaller()
     {
-        var context = _http.HttpContext
-            ?? throw new InvalidOperationException(
-                "No HTTP context.");
+        var context = _http.HttpContext ?? throw new InvalidOperationException("No HTTP context.");
 
-        var userId =
-            context.User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? context.User.FindFirstValue("uid")
-            ?? throw new UnauthorizedAccessException(
-                "User is not signed in.");
+        var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.User.FindFirstValue("uid") ?? throw new UnauthorizedAccessException("User is not signed in.");
 
-        // On-behalf-of:
-        // signed-in user's token is forwarded to MCP server.
-        var token =
-            context.Request.Cookies["access_token"]
-            ?? throw new UnauthorizedAccessException(
-                "Access token missing.");
+        // On-behalf-of: signed-in user's token is forwarded to MCP server.
+        var token = context.Request.Cookies["access_token"] ?? throw new UnauthorizedAccessException("Access token missing.");
 
         return (userId, token);
     }
@@ -207,51 +142,30 @@ internal sealed class SupportAgent : IAgentChat
     // MCP
     // ---------------------------------------------------------
 
-    private async Task<McpClient> ConnectMcpAsync(
-        string token,
-        CancellationToken ct)
+    private async Task<McpClient> ConnectMcpAsync(string token, CancellationToken ct)
     {
-        return await McpClient.CreateAsync(
-            new HttpClientTransport(
-                new HttpClientTransportOptions
-                {
-                    Endpoint = new Uri(
-                        _options.McpServerUrl),
+        var headers = new Dictionary<string, string> { ["Authorization"] = $"Bearer {token}" };
 
-                    AdditionalHeaders =
-                        new Dictionary<string, string>
-                        {
-                            ["Authorization"] =
-                                $"Bearer {token}"
-                        }
-                }),
-            cancellationToken: ct);
+        var transport = new HttpClientTransport(new HttpClientTransportOptions { Endpoint = new Uri(_options.McpServerUrl), AdditionalHeaders = headers });
+
+        return await McpClient.CreateAsync(transport, cancellationToken: ct);
     }
 
     // ---------------------------------------------------------
     // Agent
     // ---------------------------------------------------------
 
-    private async Task<AIAgent> CreateAgentAsync(
-        McpClient mcp,
-        CancellationToken ct)
+    private async Task<AIAgent> CreateAgentAsync(McpClient mcp, CancellationToken ct)
     {
-        var tools = await mcp.ListToolsAsync(
-            cancellationToken: ct);
+        var tools = await mcp.ListToolsAsync(cancellationToken: ct);
 
-        return _chatClient.AsAIAgent(
-            instructions: Instructions,
-            tools: [.. tools]);
+        return _chatClient.AsAIAgent(instructions: Instructions, tools: [.. tools]);
     }
 
     // ---------------------------------------------------------
     // Cache Key
     // ---------------------------------------------------------
 
-    private static string SessionKey(
-        string userId,
-        string conversationId)
-    {
-        return $"agent:{userId}:{conversationId}";
-    }
+    private static string SessionKey(string userId, string conversationId) =>
+    $"agent:{userId}:{conversationId}";
 }

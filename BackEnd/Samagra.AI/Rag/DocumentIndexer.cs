@@ -10,13 +10,16 @@ internal sealed class DocumentIndexer : IDocumentIndexer
 {
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embedder;
     private readonly string _connectionString;
+    private readonly string _table;
 
     public DocumentIndexer(
         IEmbeddingGenerator<string, Embedding<float>> embedder,
-        string connectionString)
+        string connectionString,
+        string table)
     {
         _embedder = embedder;
         _connectionString = connectionString;
+        _table = VectorTableName.Validate(table);
     }
 
     public async Task<int> IndexAsync(
@@ -40,7 +43,7 @@ internal sealed class DocumentIndexer : IDocumentIndexer
         for (var i = 0; i < chunks.Count; i++)
         {
             await using var cmd = new NpgsqlCommand(
-                "INSERT INTO document_chunks (source, content, embedding) VALUES ($1, $2, $3)",
+                $"INSERT INTO {_table} (source, content, embedding) VALUES ($1, $2, $3)",
                 conn);
 
             cmd.Parameters.AddWithValue(source);
@@ -56,7 +59,7 @@ internal sealed class DocumentIndexer : IDocumentIndexer
     public async Task ClearAsync(CancellationToken ct = default)
     {
         await using var conn = await OpenAsync(ct);
-        await using var cmd = new NpgsqlCommand("DELETE FROM document_chunks", conn);
+        await using var cmd = new NpgsqlCommand($"DELETE FROM {_table}", conn);
         await cmd.ExecuteNonQueryAsync(ct);
     }
 

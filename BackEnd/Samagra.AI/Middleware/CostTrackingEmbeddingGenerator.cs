@@ -65,7 +65,7 @@ internal sealed class CostTrackingEmbeddingGenerator
         try
         {
             var input = (int)(result?.Usage?.InputTokenCount ?? 0);
-            var model = _options.EmbeddingModel;
+            var model = _options.ActiveEmbeddingModel;
 
             var cost = 0m;
             if (_options.Pricing.TryGetValue(model, out var price))

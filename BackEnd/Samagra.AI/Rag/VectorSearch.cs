@@ -9,13 +9,16 @@ internal sealed class VectorSearch : IVectorSearch
 {
     private readonly IEmbeddingGenerator<string, Embedding<float>> _embedder;
     private readonly string _connectionString;
+    private readonly string _table;
 
     public VectorSearch(
         IEmbeddingGenerator<string, Embedding<float>> embedder,
-        string connectionString)
+        string connectionString,
+        string table)
     {
         _embedder = embedder;
         _connectionString = connectionString;
+        _table = VectorTableName.Validate(table);
     }
 
     public async Task<IReadOnlyList<SearchResult>> SearchAsync(
@@ -34,9 +37,9 @@ internal sealed class VectorSearch : IVectorSearch
 
         // 2. सबसे पास वाले ढूँढो
         await using var cmd = new NpgsqlCommand(
-            """
+            $"""
             SELECT source, content, embedding <=> $1 AS distance
-            FROM document_chunks
+            FROM {_table}
             ORDER BY distance
             LIMIT $2
             """, conn);

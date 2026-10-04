@@ -13,6 +13,7 @@ using Samagra.AI.Tools;
 using Samagra.Application.Interfaces;
 using Samagra.AI.Agents;
 using Samagra.AI.Mcp;
+using OllamaSharp;
 namespace Samagra.AI;
 
 public static class DependencyInjection
@@ -26,23 +27,17 @@ public static class DependencyInjection
             .Get<AiOptions>()
             ?? throw new InvalidOperationException("Ai configuration section is missing.");
 
-        if (string.IsNullOrWhiteSpace(options.Endpoint) || string.IsNullOrWhiteSpace(options.ApiKey))
-            throw new InvalidOperationException(
-                "Ai:Endpoint and Ai:ApiKey must be set in appsettings.Development.json or user secrets.");
-
         var vectorDbConnection = configuration.GetConnectionString("VectorDb")
             ?? throw new InvalidOperationException("VectorDb connection string is missing.");
 
-        var azureClient = new AzureOpenAIClient(
-            new Uri(options.Endpoint),
-            new AzureKeyCredential(options.ApiKey));
+        // Provider switch — "Ai:Provider" = "OpenAI" | "Ollama"
+        var (baseChatClient, baseEmbedder) = CreateProviderClients(options);
 
         services.AddHttpContextAccessor();
 
-        // Chat — budget guard → function invocation → cost tracking → Azure
+        // Chat — budget guard → function invocation → cost tracking → provider
       services.AddSingleton<IChatClient>(sp =>
-    azureClient.GetChatClient(options.ChatModel)
-        .AsIChatClient()
+    baseChatClient
         .AsBuilder()
         .Use(inner => new BudgetGuardChatClient(
             inner,
@@ -63,8 +58,7 @@ public static class DependencyInjection
 
         // Embeddings — cost tracking के साथ
         services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
-            azureClient.GetEmbeddingClient(options.EmbeddingModel)
-                .AsIEmbeddingGenerator()
+            baseEmbedder
                 .AsBuilder()
                 .Use(inner => new CostTrackingEmbeddingGenerator(
                     inner,
@@ -78,12 +72,14 @@ public static class DependencyInjection
         services.AddScoped<IVectorSearch>(sp =>
             new VectorSearch(
                 sp.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>(),
-                vectorDbConnection));
+                vectorDbConnection,
+                options.ActiveVectorTable));
 
         services.AddScoped<IDocumentIndexer>(sp =>
             new DocumentIndexer(
                 sp.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>(),
-                vectorDbConnection));
+                vectorDbConnection,
+                options.ActiveVectorTable));
 
         // Tools
         services.AddScoped<OrderTools>();
@@ -99,5 +95,38 @@ services.AddSingleton(options);
 services.AddScoped<IAgentChat, SupportAgent>();
 
         return services;
+    }
+
+    private static (IChatClient Chat, IEmbeddingGenerator<string, Embedding<float>> Embedder)
+        CreateProviderClients(AiOptions options)
+    {
+        if (options.IsOllama)
+        {
+            if (string.IsNullOrWhiteSpace(options.Ollama.Endpoint))
+                throw new InvalidOperationException("Ai:Ollama:Endpoint must be set when Ai:Provider is Ollama.");
+
+            var endpoint = new Uri(options.Ollama.Endpoint);
+
+            // OllamaApiClient खुद IChatClient और IEmbeddingGenerator दोनों है
+            return (
+                new OllamaApiClient(endpoint, options.Ollama.ChatModel),
+                new OllamaApiClient(endpoint, options.Ollama.EmbeddingModel));
+        }
+
+        if (!string.Equals(options.Provider, AiProviders.OpenAI, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException(
+                $"Unknown Ai:Provider '{options.Provider}'. Use '{AiProviders.OpenAI}' or '{AiProviders.Ollama}'.");
+
+        if (string.IsNullOrWhiteSpace(options.Endpoint) || string.IsNullOrWhiteSpace(options.ApiKey))
+            throw new InvalidOperationException(
+                "Ai:Endpoint and Ai:ApiKey must be set in appsettings.Development.json or user secrets.");
+
+        var azureClient = new AzureOpenAIClient(
+            new Uri(options.Endpoint),
+            new AzureKeyCredential(options.ApiKey));
+
+        return (
+            azureClient.GetChatClient(options.ChatModel).AsIChatClient(),
+            azureClient.GetEmbeddingClient(options.EmbeddingModel).AsIEmbeddingGenerator());
     }
 }

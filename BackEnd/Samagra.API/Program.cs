@@ -7,10 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 using Samagra.Application.Interfaces;
 using Samagra.Infrastructure.Data;
 using Samagra.Infrastructure.Identity;
-using Samagra.Infrastructure.Repositories;  
+using Samagra.Infrastructure.Repositories;
 using Samagra.AI;
-using Samagra.API.ExceptionHandlers;
-
+using Samagra.API.ExceptionHandlers; 
+using samagra.API.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,7 +109,10 @@ builder.Services.AddExceptionHandler<UnsafeInputExceptionHandler>();
 builder.Services.AddExceptionHandler<AiBudgetExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddAiServices(builder.Configuration);
-
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ModelValidation>();
+});
 builder.Services
     .AddMcpServer()
     .WithHttpTransport()
