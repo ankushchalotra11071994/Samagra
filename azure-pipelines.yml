@@ -1,174 +1,98 @@
+ # ─── कब चलेगी ───
 trigger:
   branches:
     include:
-      - main
-      - develop
-      - feature/*
+      - main            # main में push होते ही CI चलेगा
 
 pr:
   branches:
     include:
-      - main
-      - develop
+      - main            # main में PR आने पर भी चलेगा
+
+pool:
+  vmImage: 'ubuntu-latest'   # Microsoft का Linux machine
 
 variables:
   buildConfiguration: 'Release'
-  dotnetVersion: '8.0.x'
-  nodeVersion: '20.x'
-  workingDirectory: '$(System.DefaultWorkingDirectory)'
+  solution: 'BackEnd/Samagra.slnx'
 
 stages:
-
-# ─────────────────────────────────────────
-# STAGE 1: BUILD & TEST .NET CORE
-# ─────────────────────────────────────────
+# ─── STAGE 1: CI - Build & Test .NET ───
 - stage: Build_DotNet
-  displayName: 'Build & Test .NET Core'
+  displayName: 'Build & Test .NET'
   jobs:
   - job: BuildJob
-    displayName: 'Build .NET Core App'
-    pool:
-      vmImage: 'ubuntu-latest'
-
+    displayName: 'Build, Test, Publish API'
     steps:
     - task: UseDotNet@2
-      displayName: 'Install .NET SDK'
+      displayName: 'Install .NET 10 SDK'
       inputs:
         packageType: 'sdk'
-        version: '$(dotnetVersion)'
+        version: '10.0.x'
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Restore NuGet Packages'
+    - script: dotnet restore $(solution)
+      displayName: 'Restore NuGet packages'
+
+    - script: dotnet build $(solution) --configuration $(buildConfiguration) --no-restore
+      displayName: 'Build solution'
+
+    - script: >
+        dotnet test BackEnd/tests/Samagra.Application.Tests/Samagra.Application.Tests.csproj
+        --configuration $(buildConfiguration) --no-build
+        --logger trx --results-directory $(Agent.TempDirectory)/TestResults
+      displayName: 'Run unit tests'
+
+    - task: PublishTestResults@2
+      displayName: 'Publish test results'
+      condition: succeededOrFailed()      # test fail हों तब भी report दिखे
       inputs:
-        command: 'restore'
-        projects: '**/*.csproj'
+        testResultsFormat: 'VSTest'
+        searchFolder: '$(Agent.TempDirectory)/TestResults'
+        testResultsFiles: '**/*.trx'
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Build Solution'
+    - script: >
+        dotnet publish BackEnd/Samagra.API/Samagra.API.csproj
+        --configuration $(buildConfiguration) --no-build
+        --output $(Build.ArtifactStagingDirectory)/api
+      displayName: 'Publish API'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Upload API artifact'
       inputs:
-        command: 'build'
-        projects: '**/*.csproj'
-        arguments: '--configuration $(buildConfiguration) --no-restore'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Run Unit Tests'
-      inputs:
-        command: 'test'
-        projects: '**/*Tests/*.csproj'
-        arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
-
-    - task: PublishCodeCoverageResults@1
-      displayName: 'Publish Code Coverage'
-      inputs:
-        codeCoverageTool: 'Cobertura'
-        summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Publish .NET App'
-      inputs:
-        command: 'publish'
-        publishWebProjects: true
-        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/dotnet'
-        zipAfterPublish: true
-
-    - task: PublishBuildArtifacts@1
-      displayName: 'Upload .NET Artifact'
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)/dotnet'
-        ArtifactName: 'dotnet-drop'
-
-# ─────────────────────────────────────────
-# STAGE 2: BUILD REACT APP
-# ─────────────────────────────────────────
-- stage: Build_React
-  displayName: 'Build React App'
-  dependsOn: []   # runs in parallel with .NET stage
+        targetPath: '$(Build.ArtifactStagingDirectory)/api'
+        artifact: 'api-drop'
+        # ─── STAGE 2: Docker image build + push ───
+- stage: Docker
+  displayName: 'Docker Build & Push'
+  dependsOn: Build_DotNet
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
-  - job: ReactBuild
-    displayName: 'Build React Frontend'
-    pool:
-      vmImage: 'ubuntu-latest'
-
+  - job: DockerJob
     steps:
-    - task: NodeTool@0
-      displayName: 'Install Node.js'
+    - task: Docker@2
+      displayName: 'Build and push image'
       inputs:
-        versionSpec: '$(nodeVersion)'
+        containerRegistry: 'dockerhub-connection'
+        repository: 'USERNAME/samagra-api'
+        command: 'buildAndPush'
+        Dockerfile: 'BackEnd/Dockerfile'
+        buildContext: 'BackEnd'
+        tags: |
+          $(Build.BuildId)
+          latest
 
-    - script: |
-        cd frontend
-        npm ci
-      displayName: 'Install npm Packages'
-
-    - script: |
-        cd frontend
-        npm run build
-      displayName: 'Build React App'
-
-    - task: PublishBuildArtifacts@1
-      displayName: 'Upload React Artifact'
-      inputs:
-        PathtoPublish: 'frontend/build'
-        ArtifactName: 'react-drop'
-
-# ─────────────────────────────────────────
-# STAGE 3: DATABASE - SQL MIGRATION
-# ─────────────────────────────────────────
-- stage: Database_Migration
-  displayName: 'Run SQL Migrations'
-  dependsOn:
-    - Build_DotNet
-    - Build_React
-  condition: succeeded()
-  jobs:
-  - job: SqlMigration
-    displayName: 'EF Core Migration'
-    pool:
-      vmImage: 'ubuntu-latest'
-
-    steps:
-    - task: UseDotNet@2
-      inputs:
-        packageType: 'sdk'
-        version: '$(dotnetVersion)'
-
-    - script: |
-        dotnet tool install --global dotnet-ef
-        dotnet ef database update --project src/YourProject.Infrastructure --startup-project src/YourProject.API
-      displayName: 'Apply EF Core Migrations'
-      env:
-        ConnectionStrings__DefaultConnection: $(DB_CONNECTION_STRING)  # set in pipeline variables
-
-# ─────────────────────────────────────────
-# STAGE 4: DEPLOY TO AZURE
-# ─────────────────────────────────────────
+# ─── STAGE 3: Deploy to Azure Web App ───
 - stage: Deploy
   displayName: 'Deploy to Azure'
-  dependsOn: Database_Migration
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  dependsOn: Docker
+  condition: succeeded()
   jobs:
-  - deployment: DeployApp
-    displayName: 'Deploy to Azure App Service'
-    environment: 'Production'
-    pool:
-      vmImage: 'ubuntu-latest'
-
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: DownloadBuildArtifacts@1
-            inputs:
-              buildType: 'current'
-              downloadType: 'specific'
-              artifactName: 'dotnet-drop'
-              downloadPath: '$(System.ArtifactDirectory)'
-
-          - task: AzureWebApp@1
-            displayName: 'Deploy .NET API to App Service'
-            inputs:
-              azureSubscription: 'YOUR_SERVICE_CONNECTION'   # replace this
-              appType: 'webAppLinux'
-              appName: 'your-app-service-name'               # replace this
-              package: '$(System.ArtifactDirectory)/dotnet-drop/*.zip'
-              runtimeStack: 'DOTNETCORE|8.0'
+  - job: DeployJob
+    steps:
+    - task: AzureWebAppContainer@1
+      displayName: 'Deploy container to Web App'
+      inputs:
+        azureSubscription: 'azure-connection'
+        appName: 'WEBAPP-NAME'
+        containers: 'docker.io/USERNAME/samagra-api:$(Build.BuildId)'
+        appSettings: '-WEBSITES_PORT 8080'
