@@ -93,6 +93,6 @@ stages:
       displayName: 'Deploy container to Web App'
       inputs:
         azureSubscription: 'azure-connection'
-        appName: 'WEBAPP-NAME'
+        appName: 'samagraAPI'
         containers: 'docker.io/ankushchalotra/samagra-api:$(Build.BuildId)'
         appSettings: '-WEBSITES_PORT 8080'
