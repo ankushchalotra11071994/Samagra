@@ -73,7 +73,7 @@ stages:
       displayName: 'Build and push image'
       inputs:
         containerRegistry: 'dockerhub-connection'
-        repository: 'USERNAME/samagra-api'
+        repository: 'ankushchalotra/samagra-api'
         command: 'buildAndPush'
         Dockerfile: 'BackEnd/Dockerfile'
         buildContext: 'BackEnd'
@@ -94,5 +94,5 @@ stages:
       inputs:
         azureSubscription: 'azure-connection'
         appName: 'WEBAPP-NAME'
-        containers: 'docker.io/USERNAME/samagra-api:$(Build.BuildId)'
+        containers: 'docker.io/ankushchalotra/samagra-api:$(Build.BuildId)'
         appSettings: '-WEBSITES_PORT 8080'
