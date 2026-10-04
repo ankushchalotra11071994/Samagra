@@ -61,3 +61,38 @@ stages:
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/api'
         artifact: 'api-drop'
+        # ─── STAGE 2: Docker image build + push ───
+- stage: Docker
+  displayName: 'Docker Build & Push'
+  dependsOn: Build_DotNet
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  jobs:
+  - job: DockerJob
+    steps:
+    - task: Docker@2
+      displayName: 'Build and push image'
+      inputs:
+        containerRegistry: 'dockerhub-connection'
+        repository: 'USERNAME/samagra-api'
+        command: 'buildAndPush'
+        Dockerfile: 'BackEnd/Dockerfile'
+        buildContext: 'BackEnd'
+        tags: |
+          $(Build.BuildId)
+          latest
+
+# ─── STAGE 3: Deploy to Azure Web App ───
+- stage: Deploy
+  displayName: 'Deploy to Azure'
+  dependsOn: Docker
+  condition: succeeded()
+  jobs:
+  - job: DeployJob
+    steps:
+    - task: AzureWebAppContainer@1
+      displayName: 'Deploy container to Web App'
+      inputs:
+        azureSubscription: 'azure-connection'
+        appName: 'WEBAPP-NAME'
+        containers: 'docker.io/USERNAME/samagra-api:$(Build.BuildId)'
+        appSettings: '-WEBSITES_PORT 8080'
