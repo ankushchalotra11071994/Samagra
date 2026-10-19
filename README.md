@@ -92,7 +92,7 @@ later. A budget guard sits in front of it and rejects requests once a user passe
 daily limit, before any tokens are spent.
 
 ```
-BudgetGuard → FunctionInvocation → CostTracking → Azure OpenAI
+BudgetGuard → InputGuard → FunctionInvocation → CostTracking → Azure OpenAI
 ```
 
 Order matters. The budget guard is outermost so it checks once per question. Cost tracking
@@ -113,21 +113,25 @@ injected — the same pattern you need inside a `BackgroundService`.
 docker compose up -d
 ```
 
-**2. Enable pgvector**
+The compose file starts SQL Server, PostgreSQL (pgvector) and Redis, and creates the
+`vector` extension on first run. To check it:
 
 ```bash
-docker exec -it samagra-pgvector psql -U postgres -d samagra_vectors
-```
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
+docker exec -it samagra-pgvector psql -U postgres -d samagra_vectors -c '\dx'
 ```
 
-**3. Configure secrets**
+**2. Configure secrets**
 
-Copy `appsettings.Development.json.example` to `appsettings.Development.json` and fill in
-your SQL Server connection string, JWT signing key, and Azure OpenAI endpoint and key.
+```bash
+cp BackEnd/Samagra.API/appsettings.json.example BackEnd/Samagra.API/appsettings.json
+```
 
-**4. Apply migrations and run**
+Fill in your SQL Server connection string, JWT signing key, and Azure OpenAI endpoint and
+key. `appsettings.json` is git-ignored — real keys stay on your machine and never get
+committed. Deployed environments supply the same values as App Service settings
+(`ConnectionStrings__Default`, `Ai__ApiKey`, …).
+
+**3. Apply migrations and run** (from `BackEnd/`)
 
 ```bash
 dotnet ef database update --project Samagra.Infrastructure --startup-project Samagra.API
@@ -140,16 +144,27 @@ Swagger is at `http://localhost:5109/swagger`.
 
 ## API
 
-| Endpoint | What it does |
-|---|---|
-| `POST /api/ai/ask` | Plain chat, no retrieval |
-| `POST /api/ai/ask-rag` | Answers from indexed documents only |
-| `POST /api/ai/ask-tools` | Full assistant — picks tools, chains them, answers |
-| `POST /api/ai/index` | Indexes a document into pgvector (admin) |
-| `GET /api/admin/ai-usage?days=7` | Cost and token report by feature, day and user (admin) |
+| Endpoint | Who | What it does |
+|---|---|---|
+| `POST /api/ai/ask` | signed in | Plain chat, no retrieval |
+| `POST /api/ai/ask-rag` | signed in | Answers from indexed documents only |
+| `POST /api/ai/ask-tools` | signed in | Full assistant — picks tools, chains them, answers |
+| `POST /api/ai/index` | admin | Indexes a document into pgvector |
+| `GET /api/admin/ai-usage?days=7` | admin | Cost and token report by feature, day and user |
+| `GET /api/products/hybrid` | anyone | Catalog, cached in Redis behind HybridCache |
+| `GET /api/products/manage` | admin | Catalog incl. deactivated rows, with stock and paging |
+| `GET /api/categories` | anyone | Category list with active product counts |
+| `POST /api/orders` | signed in | Places an order for the caller; decrements stock |
+| `GET /api/orders/mine` | signed in | The caller's own order history |
+| `GET /api/orders` | admin | All orders, filterable by status |
+| `PATCH /api/orders/{id}/status` | admin | Moves an order along the status machine |
+| `GET /api/admin/dashboard` | admin | Revenue, order counts and low-stock summary |
+| `GET /api/auth/me` | signed in | Who is signed in (the SPA cannot read the cookie) |
 
----
+## Screens
 
-## Roadmap
-
-See [ROADMAP.md](ROADMAP.md).
+Buyer and admin are deliberately separate shells. Buyers get a top nav over the catalog,
+cart, checkout, order history and the assistant. Admins get a sidebar over the dashboard,
+product and category management, order fulfilment, CSV bulk import and the AI cost report.
+Both sit behind the same route guard, which checks the `Admin` role for everything
+under `/admin` — the server checks it again on every call.

@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import api from '../api/axios';
+import { placeOrder, payForOrder } from '../services/orderService';
+import { errorMessage } from '../lib/format';
 
 export default function OrderPage() {
   const { cartItems, totalAmount, clearCart } = useCart();
@@ -14,14 +15,14 @@ export default function OrderPage() {
   // Cart empty hai toh home pe bhejo
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-4xl mx-auto text-center mt-20">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-4">
+      <div>
+        <div className="max-w-4xl text-center mt-20">
+          <h1 className="text-2xl font-semibold text-ink mb-4">
             Cart is Empty
           </h1>
           <button
             onClick={() => navigate('/home')}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-2 bg-brand-600 text-white rounded-control hover:bg-brand-700"
           >
             Continue Shopping
           </button>
@@ -35,42 +36,36 @@ export default function OrderPage() {
     setError('');
 
     try {
-      // Step 1 — Order create karo
-      const orderRes = await api.post('/orders', {
-        userId: 'USR-001', // baad mein auth se lenge
-        items: cartItems.map((item) => ({
+      // Step 1 — Order create karo. userId backend token se leta hai.
+      const order = await placeOrder(
+        cartItems.map((item) => ({
           productId: item.id,
           quantity:  item.quantity
         }))
-      });
-
-      const orderId = orderRes.data.id;
+      );
 
       // Step 2 — Payment karo
-      const paymentRes = await api.post('/payments', {
-        orderId:       orderId,
-        paymentMethod: 'UPI'
-      });
+      const payment = await payForOrder(order.id, 'UPI');
 
       // Step 3 — Cart clear karo
       clearCart();
 
       // Step 4 — Payment page pe jao
-      navigate(`/payment-success/${paymentRes.data.id}`);
+      navigate(`/payment-success/${payment.id}`);
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Order failed, try again');
+      setError(errorMessage(err, 'Order failed, try again'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
+    <div>
+      <div className="max-w-4xl">
 
         {/* Header */}
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">
+        <h1 className="text-2xl font-semibold text-ink mb-6">
           Order Summary
         </h1>
 
@@ -81,23 +76,23 @@ export default function OrderPage() {
             {cartItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 
+                className="bg-white rounded-control border border-line p-4 
                            flex gap-4 items-center"
               >
                 <img
                   src={item.imageUrl}
                   alt={item.name}
-                  className="w-16 h-16 object-cover rounded-lg"
+                  className="w-16 h-16 object-cover rounded-control"
                 />
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900 text-sm">
+                  <h3 className="font-medium text-ink text-sm">
                     {item.name}
                   </h3>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="text-ink-muted text-sm mt-1">
                     Qty: {item.quantity}
                   </p>
                 </div>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-ink">
                   ₹{item.price * item.quantity}
                 </p>
               </div>
@@ -106,44 +101,44 @@ export default function OrderPage() {
 
           {/* Right — Summary */}
           <div className="w-full lg:w-72">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-white rounded-control border border-line p-6">
+              <h2 className="text-lg font-semibold text-ink mb-4">
                 Payment Summary
               </h2>
 
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <div className="flex justify-between text-sm text-ink-muted mb-2">
                 <span>Subtotal</span>
                 <span>₹{totalAmount}</span>
               </div>
-              <div className="flex justify-between text-sm text-gray-600 mb-4">
+              <div className="flex justify-between text-sm text-ink-muted mb-4">
                 <span>Delivery</span>
-                <span className="text-green-600">Free</span>
+                <span className="text-brand-600">Free</span>
               </div>
 
-              <div className="border-t border-gray-200 pt-4 mb-6">
-                <div className="flex justify-between font-semibold text-gray-900">
+              <div className="border-t border-line pt-4 mb-6">
+                <div className="flex justify-between font-semibold text-ink">
                   <span>Total</span>
                   <span>₹{totalAmount}</span>
                 </div>
               </div>
 
               {error && (
-                <p className="text-red-500 text-sm mb-4">{error}</p>
+                <p className="text-danger-600 text-sm mb-4">{error}</p>
               )}
 
               <button
                 onClick={handlePlaceOrder}
                 disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white font-medium 
-                           rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="w-full py-3 bg-brand-600 text-white font-medium 
+                           rounded-control hover:bg-brand-700 disabled:opacity-50"
               >
                 {loading ? 'Placing Order...' : 'Place Order & Pay'}
               </button>
 
               <button
                 onClick={() => navigate('/cart')}
-                className="w-full mt-3 py-3 border border-gray-300 text-gray-600 
-                           font-medium rounded-lg hover:bg-gray-50"
+                className="w-full mt-3 py-3 border border-line text-ink-muted 
+                           font-medium rounded-control hover:bg-surface-muted"
               >
                 Back to Cart
               </button>

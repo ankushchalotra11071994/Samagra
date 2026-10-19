@@ -1,0 +1,9 @@
+Name,Description,Price,Stock,CategoryName,ImageUrl
+Ceramic Coffee Mug,350 ml microwave safe,349.00,150,Home,/assets/5.webp
+Laptop Backpack,"Water resistant, 15.6 inch",1499.00,60,Electronics,/assets/6.webp
+Cotton Socks Pack of 5,Ankle length,399.00,200,Clothing,/assets/7.webp
+,Name missing — should fail,299.00,10,Home,/assets/8.webp
+Gaming Mouse,Price is not a number — should fail,abc,40,Electronics,/assets/9.webp
+Tennis Balls,Negative stock — should fail,450.00,-5,Sports,/assets/10.webp
+Garden Hose,Category does not exist — should fail,899.00,30,Garden,/assets/1.webp
+Notebook A5,Too many decimals — should fail,99.999,500,Books,/assets/2.webp

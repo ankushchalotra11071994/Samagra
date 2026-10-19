@@ -1,0 +1,58 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+
+  "ConnectionStrings": {
+    "Redis": "localhost:6379",
+    "Default": "Server=localhost,1433;Database=SamagraDb;User Id=sa;Password=<sql-password>;TrustServerCertificate=True",
+    "VectorDb": "Host=localhost;Port=5432;Database=samagra_vectors;Username=postgres;Password=<pg-password>",
+    "BlobStorage": "<azure-storage-connection-string>",
+    "ServiceBus": "<azure-service-bus-connection-string>"
+  },
+
+  "BulkImport": {
+    "ContainerName": "bulk-imports",
+    "QueueName": "bulk-imports",
+    "UploadUrlExpiryMinutes": 15,
+    "MaxFileSizeBytes": 104857600
+  },
+  "Jwt": {
+    "Issuer": "samagra",
+    "Audience": "samagra-api",
+    "SigningKey": "<long-random-string-32-chars-minimum>",
+    "ExpiryMinutes": 60
+  },
+  "ApplicationInsights": {
+    "ConnectionString": "<application-insights-connection-string>"
+  },
+  "Ai": {
+    "Provider": "Ollama",
+    "VectorTable": "document_chunks",
+    "Ollama": {
+      "Endpoint": "http://localhost:11434",
+      "ChatModel": "qwen2.5:7b",
+      "EmbeddingModel": "nomic-embed-text",
+      "VectorTable": "document_chunks_768"
+    },
+    "Endpoint": "<azure-openai-endpoint>",
+    "ApiKey": "<azure-openai-api-key>",
+    "ChatModel": "gpt-4.1-mini",
+    "EmbeddingModel": "text-embedding-3-small",
+    "DailyBudgetPerUserUsd": 0.10,
+    "Pricing": {
+      "gpt-4.1-mini": {
+        "InputPerMillion": 0.40,
+        "OutputPerMillion": 1.60
+      },
+      "text-embedding-3-small": {
+        "InputPerMillion": 0.02,
+        "OutputPerMillion": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+using System;
+using Microsoft.AspNetCore.Diagnostics;
+
+namespace samagra.API.Middleware
+{
+ public class IGlobalException:IExceptionhandler
+{
+    public async ValueTask<bool> TryHandleAsync (IHttpContext context,Exception exception,CancellationToken cancellation)
+        { 
+             exception is exception is KeyNotFoundException ?400:500;
+             context.Response.StatusCode=400;
+             await context.Response.WriteasjsonAsync( new object
+             {
+                 status=400,
+                 Title="Somthign wet wrong"
+             },cancellation); 
+              return true;
+        } 
+    
+ 
+}
+}

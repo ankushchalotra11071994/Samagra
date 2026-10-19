@@ -7,5 +7,6 @@
   <Project Path="Samagra.API/Samagra.API.csproj" />
   <Project Path="Samagra.Application/Samagra.Application.csproj" />
   <Project Path="Samagra.Domain/Samagra.Domain.csproj" />
+  <Project Path="Samagra.Functions/Samagra.Functions.csproj" />
   <Project Path="Samagra.Infrastructure/Samagra.Infrastructure.csproj" />
 </Solution>

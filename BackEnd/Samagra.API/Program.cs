@@ -5,12 +5,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.IdentityModel.Tokens;
 using Samagra.Application.Interfaces;
+using Samagra.Infrastructure.BulkImport;
 using Samagra.Infrastructure.Data;
 using Samagra.Infrastructure.Identity;
 using Samagra.Infrastructure.Repositories;
 using Samagra.AI;
 using Samagra.API.ExceptionHandlers; 
+using Samagra.API.Middleware;
 using samagra.API.Filters;
+using Samagra.API.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,9 +107,11 @@ builder.Services.AddHybridCache(options =>
     };
 });
 builder.Services.AddOutputCache();
+builder.Services.AddBulkImport(builder.Configuration);
 builder.Services.AddAiServices(builder.Configuration);
 builder.Services.AddExceptionHandler<UnsafeInputExceptionHandler>();
 builder.Services.AddExceptionHandler<AiBudgetExceptionHandler>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();   // catch-all, सबसे आखिर में
 builder.Services.AddProblemDetails();
 builder.Services.AddAiServices(builder.Configuration);
 builder.Services.AddControllers(options =>
@@ -122,13 +127,12 @@ builder.Services
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
-    var roles = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+    // Roles har environment mein chahiye; test logins sirf Development mein.
+    // Users ki list Samagra.API/Seed/DevDataSeeder.cs mein hai.
+    await DevDataSeeder.SeedRolesAsync(scope.ServiceProvider);
 
-    foreach (var role in new[] { Roles.Buyer, Roles.Admin })
-    {
-        if (!await roles.RoleExistsAsync(role))
-            await roles.CreateAsync(new ApplicationRole(role));
-    }
+    if (app.Environment.IsDevelopment())
+        await DevDataSeeder.SeedDevUsersAsync(scope.ServiceProvider);
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
