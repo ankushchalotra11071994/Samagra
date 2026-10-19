@@ -65,6 +65,8 @@ builder.Services.AddScoped<IBuyerRepository, BuyerRepository>();
 builder.Services.AddScoped<IAiUsageRecorder, AiUsageRecorder>();   // ← नई
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<ISavedCardRepository, SavedCardRepository>();
 builder.Services.AddScoped<IAiUsageRecorder, AiUsageRecorder>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddApplicationInsightsTelemetry();

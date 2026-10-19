@@ -130,7 +130,7 @@ export default function BulkImportPage() {
         </div>
 
         {/* Upload card */}
-        <div className="bg-white rounded-control border border-line p-6 mb-6">
+        <div className="bg-surface rounded-control border border-line p-6 mb-6">
           <p className="text-sm text-ink-muted mb-4">
             Columns: <code>Name, Description, Price, Stock, CategoryName, ImageUrl</code>.
             Category must already exist. Max 100 MB.
@@ -150,7 +150,7 @@ export default function BulkImportPage() {
             <button
               onClick={handleUpload}
               disabled={!file || busy}
-              className="px-6 py-2 bg-brand-600 text-white font-medium rounded-control
+              className="px-6 py-2 bg-brand-600 text-ink-inverse font-medium rounded-control
                          hover:bg-brand-700 disabled:opacity-50"
             >
               {step === 'uploading' ? 'Uploading...' : step === 'starting' ? 'Starting...' : 'Upload & Import'}
@@ -174,7 +174,7 @@ export default function BulkImportPage() {
 
         {/* Current job */}
         {job && (
-          <div className="bg-white rounded-control border border-line p-6 mb-6">
+          <div className="bg-surface rounded-control border border-line p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-ink">{job.fileName}</h2>
               <StatusBadge status={job.status} />
@@ -237,7 +237,7 @@ export default function BulkImportPage() {
 
         {/* Recent imports */}
         {recent.length > 0 && (
-          <div className="bg-white rounded-control border border-line p-6">
+          <div className="bg-surface rounded-control border border-line p-6">
             <h2 className="text-lg font-semibold text-ink mb-4">Recent imports</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

@@ -1,5 +1,4 @@
 // src/pages/PaymentSuccessPage.jsx
-import AiChat from '../components/AiChat';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function PaymentSuccessPage() {
@@ -8,7 +7,7 @@ export default function PaymentSuccessPage() {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="bg-white rounded-control border border-line p-10 
+      <div className="bg-surface rounded-control border border-line p-10 
                       max-w-md w-full text-center">
 
         {/* Success Icon */}
@@ -29,14 +28,13 @@ export default function PaymentSuccessPage() {
 
         <button
           onClick={() => navigate('/home')}
-          className="w-full py-3 bg-brand-600 text-white font-medium 
+          className="w-full py-3 bg-brand-600 text-ink-inverse font-medium 
                      rounded-control hover:bg-brand-700"
         >
           Continue Shopping
         </button>
 
       </div>
-          <AiChat />   
     </div>
   );
 }

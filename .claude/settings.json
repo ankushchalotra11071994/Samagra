@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit(BackEnd/**)",
+      "Edit(FrontEnd/**)",
+      "Edit(docker/**)",
+      "Edit(samples/**)",
+      "Edit(.claude/**)",
+      "Edit(*.md)",
+      "Edit(docker-compose.yml)",
+
+      "Bash(dotnet restore*)",
+      "Bash(dotnet build*)",
+      "Bash(dotnet test*)",
+      "Bash(dotnet run*)",
+      "Bash(dotnet format*)",
+      "Bash(dotnet ef migrations *)",
+      "Bash(func start*)",
+
+      "Bash(npm run *)",
+      "Bash(npm ci*)",
+      "Bash(npx eslint*)",
+
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git add*)",
+      "Bash(git restore*)",
+      "Bash(git stash*)",
+      "Bash(git checkout -b *)",
+      "Bash(git check-ignore*)",
+      "Bash(git ls-files*)",
+
+      "Bash(docker ps*)",
+      "Bash(docker compose ps*)",
+      "Bash(docker compose logs*)",
+      "Bash(docker compose up -d*)",
+
+      "Bash(curl -s http://localhost:*)",
+      "Bash(curl -s -o /dev/null*)",
+      "Bash(lsof -ti tcp:*)"
+    ],
+    "ask": [
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git merge*)",
+      "Bash(git rebase*)",
+      "Bash(git reset*)",
+      "Bash(gh pr *)",
+      "Bash(gh release *)",
+
+      "Bash(npm install*)",
+      "Bash(npm uninstall*)",
+      "Bash(npm publish*)",
+      "Bash(dotnet add package*)",
+      "Bash(dotnet nuget *)",
+
+      "Bash(dotnet ef database update*)",
+      "Bash(docker compose down*)",
+      "Bash(docker compose restart*)",
+
+      "Edit(BackEnd/Samagra.API/appsettings.json)",
+      "Edit(BackEnd/Samagra.Functions/local.settings.json)",
+      "Edit(.github/**)",
+      "Edit(azure-pipelines.yml)",
+      "Edit(BackEnd/Samagra.Infrastructure/Migrations/**)"
+    ],
+    "deny": [
+      "Bash(sudo *)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git clean -fdx*)",
+      "Bash(dotnet ef database drop*)",
+      "Bash(docker compose down -v*)",
+      "Bash(docker volume rm*)",
+      "Bash(docker system prune*)",
+      "Write(BackEnd/Samagra.API/appsettings.json)",
+      "Read(**/local.settings.json)",
+      "Read(**/*.pem)",
+      "Read(**/*.pfx)",
+      "Read(**/*.key)",
+      "Read(~/.aws/**)",
+      "Read(~/.ssh/**)"
+    ]
+  }
+}

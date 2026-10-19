@@ -16,7 +16,7 @@ export default function CartPage() {
           </h1>
           <button
             onClick={() => navigate('/home')}
-            className="px-6 py-2 bg-brand-600 text-white rounded-control hover:bg-brand-700"
+            className="px-6 py-2 bg-brand-600 text-ink-inverse rounded-control hover:bg-brand-700"
           >
             Continue Shopping
           </button>
@@ -41,7 +41,7 @@ export default function CartPage() {
             {cartItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-control border border-line p-4 
+                className="bg-surface rounded-control border border-line p-4 
                            flex gap-4 items-center"
               >
                 {/* Image */}
@@ -101,7 +101,7 @@ export default function CartPage() {
 
           {/* Right — Order Summary */}
           <div className="w-full lg:w-72">
-            <div className="bg-white rounded-control border border-line p-6">
+            <div className="bg-surface rounded-control border border-line p-6">
               <h2 className="text-lg font-semibold text-ink mb-4">
                 Order Summary
               </h2>
@@ -124,7 +124,7 @@ export default function CartPage() {
 
               <button
                 onClick={() => navigate('/order')}
-                className="w-full py-3 bg-brand-600 text-white font-medium 
+                className="w-full py-3 bg-brand-600 text-ink-inverse font-medium 
                            rounded-control hover:bg-brand-700"
               >
                 Proceed to Order

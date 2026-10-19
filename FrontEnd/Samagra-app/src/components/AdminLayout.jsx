@@ -15,7 +15,7 @@ const NAV = [
 
 const linkClass = ({ isActive }) =>
   `block rounded-control px-3 py-2 text-sm font-medium transition-colors ${
-    isActive ? 'bg-brand-900 text-white' : 'text-brand-100 hover:bg-brand-800 hover:text-white'
+    isActive ? 'bg-brand-900 text-ink-inverse' : 'text-brand-100 hover:bg-brand-800 hover:text-ink-inverse'
   }`;
 
 export default function AdminLayout() {
@@ -32,7 +32,7 @@ export default function AdminLayout() {
       <aside className="bg-brand-900 lg:min-h-screen lg:w-60 lg:shrink-0">
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 lg:block">
           <div>
-            <Link to="/admin" className="text-lg font-semibold text-white">
+            <Link to="/admin" className="text-lg font-semibold text-ink-inverse">
               Samagra
             </Link>
             <p className="text-xs uppercase tracking-wider text-ink-muted">Admin</p>
@@ -51,12 +51,12 @@ export default function AdminLayout() {
           <p className="truncate text-xs text-ink-subtle" title={user?.email}>
             {user?.fullName || user?.email}
           </p>
-          <Link to="/home" className="mt-3 block text-sm text-brand-100 hover:text-white">
+          <Link to="/home" className="mt-3 block text-sm text-brand-100 hover:text-ink-inverse">
             ← Back to shop
           </Link>
           <button
             onClick={handleSignOut}
-            className="mt-2 text-sm text-ink-subtle hover:text-white"
+            className="mt-2 text-sm text-ink-subtle hover:text-ink-inverse"
           >
             Sign out
           </button>

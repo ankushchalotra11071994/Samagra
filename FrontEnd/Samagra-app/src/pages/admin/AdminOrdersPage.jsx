@@ -96,6 +96,7 @@ export default function AdminOrdersPage() {
                 <tr>
                   <th className="px-4 py-3 font-medium">Order</th>
                   <th className="px-4 py-3 font-medium">Placed</th>
+                  <th className="px-4 py-3 font-medium">Ship to</th>
                   <th className="px-4 py-3 text-right font-medium">Items</th>
                   <th className="px-4 py-3 text-right font-medium">Total</th>
                   <th className="px-4 py-3 font-medium">Status</th>
@@ -120,6 +121,16 @@ export default function AdminOrdersPage() {
                         </p>
                       </td>
                       <td className="px-4 py-3 text-ink-muted">{formatDate(order.createdAt)}</td>
+                      <td className="px-4 py-3 text-ink-muted">
+                        {order.shipToName ? (
+                          <>
+                            <span className="block text-ink">{order.shipToName}</span>
+                            <span className="text-xs">{order.shipToCity}</span>
+                          </>
+                        ) : (
+                          <span className="text-xs text-ink-subtle">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-right text-ink-muted">{order.itemCount}</td>
                       <td className="px-4 py-3 text-right font-medium text-ink">
                         {formatMoney(order.totalAmount)}

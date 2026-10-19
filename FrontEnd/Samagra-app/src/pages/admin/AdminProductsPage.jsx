@@ -73,7 +73,7 @@ export default function AdminProductsPage() {
       <PageHeader title="Products" subtitle={`${data.total} product(s) in the catalog.`}>
         <Link
           to="/admin/products/new"
-          className="rounded-control bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          className="rounded-control bg-brand-600 px-4 py-2 text-sm font-medium text-ink-inverse hover:bg-brand-700"
         >
           Add product
         </Link>

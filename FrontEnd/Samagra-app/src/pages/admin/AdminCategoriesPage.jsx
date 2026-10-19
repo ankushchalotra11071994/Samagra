@@ -103,7 +103,7 @@ export default function AdminCategoriesPage() {
           <button
             type="submit"
             disabled={creating || !newName.trim()}
-            className="rounded-control bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            className="rounded-control bg-brand-600 px-4 py-2 text-sm font-medium text-ink-inverse hover:bg-brand-700 disabled:opacity-50"
           >
             {creating ? 'Adding…' : 'Add category'}
           </button>
@@ -137,7 +137,7 @@ export default function AdminCategoriesPage() {
                   <button
                     type="submit"
                     disabled={busyId === c.id}
-                    className="rounded-control bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                    className="rounded-control bg-brand-600 px-4 py-2 text-sm font-medium text-ink-inverse hover:bg-brand-700 disabled:opacity-50"
                   >
                     Save
                   </button>

@@ -54,7 +54,7 @@ export default function RegisterPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="mt-6 space-y-4 rounded-control border border-line bg-white p-6"
+          className="mt-6 space-y-4 rounded-control border border-line bg-surface p-6"
         >
           <div>
             <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium text-ink">
@@ -133,7 +133,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-control bg-brand-600 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+            className="w-full rounded-control bg-brand-600 py-2.5 text-sm font-medium text-ink-inverse hover:bg-brand-700 disabled:opacity-50"
           >
             {loading ? 'Creating account…' : 'Create account'}
           </button>

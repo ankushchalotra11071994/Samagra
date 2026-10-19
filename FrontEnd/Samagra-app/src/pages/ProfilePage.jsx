@@ -1,6 +1,6 @@
 // src/pages/ProfilePage.jsx
 
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/auth-context';
 import { Card, PageHeader } from '../components/ui';
 
@@ -38,7 +38,31 @@ export default function ProfilePage() {
         ))}
       </Card>
 
-      <p className="mt-4 text-sm text-ink-muted">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Link
+          to="/addresses"
+          className="rounded-card border border-line bg-surface p-5 transition-colors hover:border-line-strong"
+        >
+          <p className="font-bold text-ink">Shipping addresses</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Add or edit where your orders get delivered.
+          </p>
+          <p className="mt-3 text-sm font-semibold text-brand-700">Manage addresses →</p>
+        </Link>
+
+        <Link
+          to="/cards"
+          className="rounded-card border border-line bg-surface p-5 transition-colors hover:border-line-strong"
+        >
+          <p className="font-bold text-ink">Payment cards</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Save a card for checkout. Only the last 4 digits are stored.
+          </p>
+          <p className="mt-3 text-sm font-semibold text-brand-700">Manage cards →</p>
+        </Link>
+      </div>
+
+      <p className="mt-6 text-sm text-ink-muted">
         Editing these details isn’t supported yet — there is no profile update endpoint on the
         API.
       </p>

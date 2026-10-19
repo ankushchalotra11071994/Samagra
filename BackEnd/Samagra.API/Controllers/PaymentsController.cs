@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Samagra.Application.Interfaces;
 using Samagra.Domain.Entities;
 using Samagra.Infrastructure.Data;
 
@@ -15,10 +16,14 @@ namespace Samagra.API.Controllers;
 public class PaymentsController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly ISavedCardRepository _cards;
+    private readonly TimeProvider _clock;
 
-    public PaymentsController(AppDbContext db)
+    public PaymentsController(AppDbContext db, ISavedCardRepository cards, TimeProvider clock)
     {
         _db = db;
+        _cards = cards;
+        _clock = clock;
     }
 
     private string? CurrentUserId =>
@@ -59,22 +64,42 @@ public class PaymentsController : ControllerBase
         if (existingPayment is not null)
             return BadRequest(new { message = "Payment already done for this order" });
 
-        // Step 5 — Payment create karo
+        // Step 5 — Card se pay kar rahe hain to card apna hona chahiye aur chalu hona chahiye
+        string? cardLast4 = null;
+
+        if (string.Equals(request.PaymentMethod, "CARD", StringComparison.OrdinalIgnoreCase))
+        {
+            if (request.CardId is null)
+                return BadRequest(new { message = "Choose a card to pay with." });
+
+            var card = await _cards.GetAsync(request.CardId.Value, userId);
+            if (card is null)
+                return BadRequest(new { message = "That card isn't saved on your account." });
+
+            if (card.HasExpired(_clock.GetUtcNow().UtcDateTime))
+                return BadRequest(new { message = $"{card.Display()} has expired. Add a current card." });
+
+            cardLast4 = card.Last4;
+        }
+
+        // Step 6 — Payment create karo
         var payment = new Payment
         {
             Id            = Guid.NewGuid(),
             OrderId       = request.OrderId,
             Amount        = order.TotalAmount,
             Status        = "PENDING",
-            PaymentMethod = request.PaymentMethod
+            PaymentMethod = request.PaymentMethod,
+            CardLast4     = cardLast4
         };
 
         _db.Payments.Add(payment);
 
-        // Step 6 — Simulate gateway — real mein Razorpay/Paytm call hoga
+        // Step 7 — Simulate gateway — real mein Razorpay/Paytm call hoga.
+        // Asli gateway lagne par uska token SavedCard mein rakhna hoga, PAN kabhi nahi.
         var isSuccess = true; // abhi hardcode — baad mein gateway lagayenge
 
-        // Step 7 — Status update karo
+        // Step 8 — Status update karo
         payment.Status = isSuccess ? "SUCCESS" : "FAILED";
         order.Status   = isSuccess ? OrderStatuses.Confirmed : OrderStatuses.Cancelled;
 
@@ -87,6 +112,7 @@ public class PaymentsController : ControllerBase
             payment.Amount,
             payment.Status,
             payment.PaymentMethod,
+            payment.CardLast4,
             payment.CreatedAt
         });
     }
@@ -114,6 +140,7 @@ public class PaymentsController : ControllerBase
             payment.Amount,
             payment.Status,
             payment.PaymentMethod,
+            payment.CardLast4,
             payment.CreatedAt,
             Order = new
             {
@@ -127,5 +154,6 @@ public class PaymentsController : ControllerBase
 
 public record CreatePaymentRequest(
     Guid   OrderId,
-    string PaymentMethod
+    string PaymentMethod,
+    Guid?  CardId = null
 );

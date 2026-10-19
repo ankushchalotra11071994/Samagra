@@ -18,6 +18,9 @@ public DbSet<Payment>   Payments   { get; set; }
 
 public DbSet<AiUsage> AiUsages => Set<AiUsage>();
 
+    public DbSet<Address> Addresses => Set<Address>();
+    public DbSet<SavedCard> SavedCards => Set<SavedCard>();
+
     public DbSet<BulkImportJob> BulkImportJobs => Set<BulkImportJob>();
     public DbSet<BulkImportRowError> BulkImportRowErrors => Set<BulkImportRowError>();
 
