@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Samagra.Application.Interfaces;
 using Samagra.Domain.Entities;
 using Samagra.Infrastructure.Data;
 
@@ -15,10 +16,12 @@ namespace Samagra.API.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IAddressRepository _addresses;
 
-    public OrdersController(AppDbContext db)
+    public OrdersController(AppDbContext db, IAddressRepository addresses)
     {
         _db = db;
+        _addresses = addresses;
     }
 
     // Same pattern as Samagra.AI/Tools/OrderTools — the user id comes from the
@@ -47,6 +50,20 @@ public class OrdersController : ControllerBase
 
         if (wanted.Any(i => i.Quantity < 1))
             return BadRequest(new { message = "Quantity must be at least 1" });
+
+        // Kahan bhejna hai — request mein diya pata, warna default.
+        // Dono na ho to order lena bekaar hai, kyunki ship kahin nahi kar sakte.
+        var shipTo = request.AddressId is { } addressId
+            ? await _addresses.GetAsync(addressId, userId)
+            : await _addresses.GetDefaultAsync(userId);
+
+        if (shipTo is null)
+            return BadRequest(new
+            {
+                message = request.AddressId is null
+                    ? "Add a shipping address before placing an order."
+                    : "That address doesn't exist on your account."
+            });
 
         // The stock check and the stock write have to see the same rows, so both
         // run inside one transaction.
@@ -88,7 +105,18 @@ public class OrdersController : ControllerBase
             UserId      = userId,
             TotalAmount = total,
             Status      = OrderStatuses.Pending,
-            OrderItems  = orderItems
+            OrderItems  = orderItems,
+
+            // Snapshot — pata baad mein badle ya delete ho, order wahi dikhata rahega
+            ShippingAddressId = shipTo.Id,
+            ShipToName        = shipTo.FullName,
+            ShipToPhone       = shipTo.Phone,
+            ShipToLine1       = shipTo.Line1,
+            ShipToLine2       = shipTo.Line2,
+            ShipToCity        = shipTo.City,
+            ShipToState       = shipTo.State,
+            ShipToPostalCode  = shipTo.PostalCode,
+            ShipToCountry     = shipTo.Country
         };
 
         _db.Orders.Add(order);
@@ -160,8 +188,20 @@ public class OrdersController : ControllerBase
                 order.Payment.Id,
                 order.Payment.Status,
                 order.Payment.PaymentMethod,
+                order.Payment.CardLast4,
                 order.Payment.Amount,
                 order.Payment.CreatedAt
+            },
+            ShippingAddress = order.ShipToLine1 == null ? null : new
+            {
+                Name       = order.ShipToName,
+                Phone      = order.ShipToPhone,
+                Line1      = order.ShipToLine1,
+                Line2      = order.ShipToLine2,
+                City       = order.ShipToCity,
+                State      = order.ShipToState,
+                PostalCode = order.ShipToPostalCode,
+                Country    = order.ShipToCountry
             },
             Items = order.OrderItems.Select(oi => new
             {
@@ -211,7 +251,9 @@ public class OrdersController : ControllerBase
                 o.Status,
                 o.CreatedAt,
                 ItemCount = o.OrderItems.Sum(oi => oi.Quantity),
-                PaymentStatus = o.Payment == null ? null : o.Payment.Status
+                PaymentStatus = o.Payment == null ? null : o.Payment.Status,
+                ShipToName = o.ShipToName,
+                ShipToCity = o.ShipToCity
             })
             .ToListAsync(ct);
 
@@ -276,8 +318,10 @@ public static class OrderStatuses
 }
 
 // Request DTOs — UserId is no longer accepted from the client, it comes from the token.
+// AddressId must be one of the caller's own addresses; null means "use my default".
 public record CreateOrderRequest(
-    List<OrderItemRequest> Items
+    List<OrderItemRequest> Items,
+    Guid? AddressId = null
 );
 
 public record OrderItemRequest(

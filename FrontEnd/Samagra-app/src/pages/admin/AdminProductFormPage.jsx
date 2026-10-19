@@ -251,7 +251,7 @@ export default function AdminProductFormPage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-control bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+              className="rounded-control bg-brand-600 px-5 py-2.5 text-sm font-medium text-ink-inverse hover:bg-brand-700 disabled:opacity-50"
             >
               {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create product'}
             </button>

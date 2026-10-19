@@ -42,7 +42,7 @@ export default function MyOrdersPage() {
         >
           <button
             onClick={() => navigate('/home')}
-            className="rounded-control bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
+            className="rounded-control bg-brand-600 px-5 py-2.5 text-sm font-medium text-ink-inverse hover:bg-brand-700"
           >
             Browse products
           </button>

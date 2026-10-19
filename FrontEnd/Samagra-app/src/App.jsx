@@ -19,6 +19,8 @@ import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import ProfilePage from './pages/ProfilePage';
+import AddressesPage from './pages/AddressesPage';
+import CardsPage from './pages/CardsPage';
 import AiChat from './components/AiChat';
 import HooksPractice from './components/HooksPractice';
 import NotFoundPage from './pages/NotFoundPage';
@@ -55,6 +57,8 @@ export default function App() {
                 <Route path="/orders" element={<MyOrdersPage />} />
                 <Route path="/orders/:id" element={<OrderDetailPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/addresses" element={<AddressesPage />} />
+                <Route path="/cards" element={<CardsPage />} />
                 <Route path="/ai" element={<AiChat />} />
                 <Route path="/hooks" element={<HooksPractice />} />
               </Route>

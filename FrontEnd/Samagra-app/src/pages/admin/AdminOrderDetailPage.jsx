@@ -127,6 +127,28 @@ export default function AdminOrderDetailPage() {
             <h2 className="text-sm font-medium text-ink">Buyer</h2>
             <p className="mt-1 break-all font-mono text-xs text-ink-muted">{order.userId}</p>
 
+            <h2 className="mt-5 text-sm font-medium text-ink">Shipping to</h2>
+            {order.shippingAddress ? (
+              <address className="mt-2 text-sm not-italic leading-relaxed text-ink-muted">
+                <span className="block font-semibold text-ink">
+                  {order.shippingAddress.name}
+                </span>
+                {order.shippingAddress.line1}
+                {order.shippingAddress.line2 ? `, ${order.shippingAddress.line2}` : ''}
+                <br />
+                {order.shippingAddress.city}, {order.shippingAddress.state}{' '}
+                {order.shippingAddress.postalCode}
+                <br />
+                {order.shippingAddress.country}
+                <br />
+                {order.shippingAddress.phone}
+              </address>
+            ) : (
+              <p className="mt-2 text-sm text-ink-muted">
+                No address recorded — this order predates shipping addresses.
+              </p>
+            )}
+
             <h2 className="mt-5 text-sm font-medium text-ink">Payment</h2>
             {order.payment ? (
               <dl className="mt-2 space-y-1.5 text-sm text-ink-muted">
@@ -138,7 +160,10 @@ export default function AdminOrderDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <dt>Method</dt>
-                  <dd>{order.payment.paymentMethod}</dd>
+                  <dd>
+                    {order.payment.paymentMethod}
+                    {order.payment.cardLast4 && ` ···· ${order.payment.cardLast4}`}
+                  </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt>Amount</dt>
@@ -170,7 +195,7 @@ export default function AdminOrderDetailPage() {
                     className={`rounded-control px-4 py-2.5 text-sm font-medium disabled:opacity-50 ${
                       to === 'CANCELLED'
                         ? 'border border-danger-200 text-danger-700 hover:bg-danger-50'
-                        : 'bg-brand-600 text-white hover:bg-brand-700'
+                        : 'bg-brand-600 text-ink-inverse hover:bg-brand-700'
                     }`}
                   >
                     {busy ? 'Working…' : `Mark as ${to}`}

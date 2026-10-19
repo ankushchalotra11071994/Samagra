@@ -55,7 +55,7 @@ export default function ProductDetailPage() {
 
       {/* Main Content */}
       <div className="max-w-4xl">
-        <div className="bg-white rounded-control border border-line p-6 
+        <div className="bg-surface rounded-control border border-line p-6 
                         flex flex-col md:flex-row gap-8">
 
           {/* Left — Image */}
@@ -99,8 +99,8 @@ export default function ProductDetailPage() {
                 onClick={handleAddToCart}
                 className={`w-full py-3 font-medium rounded-control transition-colors
                   ${added
-                    ? 'bg-brand-600 text-white'
-                    : 'bg-brand-600 text-white hover:bg-brand-700'
+                    ? 'bg-brand-600 text-ink-inverse'
+                    : 'bg-brand-600 text-ink-inverse hover:bg-brand-700'
                   }`}
               >
                 {added ? '✓ Added to Cart' : 'Add to Cart'}

@@ -149,8 +149,33 @@ export default function OrderDetailPage() {
               <span>{formatMoney(order.totalAmount)}</span>
             </div>
 
+
             <div className="mt-6 border-t border-line pt-4">
-              <h3 className="text-sm font-medium text-ink">Payment</h3>
+              <h3 className="text-sm font-bold text-ink">Shipping to</h3>
+              {order.shippingAddress ? (
+                <address className="mt-2 text-sm not-italic leading-relaxed text-ink-muted">
+                  <span className="block font-semibold text-ink">
+                    {order.shippingAddress.name}
+                  </span>
+                  {order.shippingAddress.line1}
+                  {order.shippingAddress.line2 ? `, ${order.shippingAddress.line2}` : ''}
+                  <br />
+                  {order.shippingAddress.city}, {order.shippingAddress.state}{' '}
+                  {order.shippingAddress.postalCode}
+                  <br />
+                  {order.shippingAddress.country}
+                  <br />
+                  {order.shippingAddress.phone}
+                </address>
+              ) : (
+                <p className="mt-2 text-sm text-ink-muted">
+                  No address recorded — this order predates shipping addresses.
+                </p>
+              )}
+            </div>
+
+            <div className="mt-6 border-t border-line pt-4">
+              <h3 className="text-sm font-bold text-ink">Payment</h3>
               {order.payment ? (
                 <dl className="mt-2 space-y-1.5 text-sm text-ink-muted">
                   <div className="flex justify-between">
@@ -161,7 +186,10 @@ export default function OrderDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <dt>Method</dt>
-                    <dd>{order.payment.paymentMethod}</dd>
+                    <dd>
+                      {order.payment.paymentMethod}
+                      {order.payment.cardLast4 && ` ···· ${order.payment.cardLast4}`}
+                    </dd>
                   </div>
                   <div className="flex justify-between">
                     <dt>Paid on</dt>
@@ -177,7 +205,7 @@ export default function OrderDetailPage() {
               <button
                 onClick={handlePay}
                 disabled={paying}
-                className="mt-6 w-full rounded-control bg-brand-600 py-3 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                className="mt-6 w-full rounded-control bg-brand-600 py-3 text-sm font-medium text-ink-inverse hover:bg-brand-700 disabled:opacity-50"
               >
                 {paying ? 'Processing…' : 'Pay now'}
               </button>

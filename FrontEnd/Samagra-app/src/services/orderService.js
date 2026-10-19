@@ -2,14 +2,16 @@
 
 import api from '../api/axios';
 
-// userId body mein nahi bhejte — backend token se nikaalta hai
-export const placeOrder = async (items) => {
-  const response = await api.post('/orders', { items });
+// userId body mein nahi bhejte — backend token se nikaalta hai.
+// addressId chhod den to backend default pata use karta hai.
+export const placeOrder = async (items, addressId = null) => {
+  const response = await api.post('/orders', { items, addressId });
   return response.data; // { id, totalAmount, status, createdAt }
 };
 
-export const payForOrder = async (orderId, paymentMethod = 'UPI') => {
-  const response = await api.post('/payments', { orderId, paymentMethod });
+// CARD ke liye cardId chahiye; UPI ke liye nahi
+export const payForOrder = async (orderId, paymentMethod = 'UPI', cardId = null) => {
+  const response = await api.post('/payments', { orderId, paymentMethod, cardId });
   return response.data;
 };
 
