@@ -1,2 +1,73 @@
- /* src/index.css — this should be the ONLY content */
+/* src/index.css — Tailwind v4 CSS-first config.
+   Theme tokens live here; pages should use the semantic names below
+   (bg-canvas, border-line, text-ink-muted, bg-brand-600 …) and not raw
+   stone-/green-/amber- scales, so the palette stays changeable in one place. */
+
 @import "tailwindcss";
+
+@theme {
+  /* Surfaces — warm off-white canvas, white cards */
+  --color-canvas: #faf8f5;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f1eb;
+  --color-surface-sunken: #efe9e0;
+
+  /* Hairlines */
+  --color-line: #e7e1d8;
+  --color-line-strong: #d8cfc1;
+
+  /* Text */
+  --color-ink: #1c1917;
+  --color-ink-muted: #6f675f;
+  --color-ink-subtle: #a39a90;
+  --color-ink-inverse: #fbf9f6;
+
+  /* Brand — deep green, primary actions and the app header */
+  --color-brand-50: #eef6f1;
+  --color-brand-100: #d6e9dd;
+  --color-brand-200: #afd4bf;
+  --color-brand-500: #2a7a54;
+  --color-brand-600: #1f6344;
+  --color-brand-700: #174d35;
+  --color-brand-800: #113a28;
+  --color-brand-900: #0c2a1d;
+
+  /* Accent — amber, for highlights and low-stock warnings */
+  --color-accent-50: #fdf6e7;
+  --color-accent-100: #f9e9c4;
+  --color-accent-200: #f0d394;
+  --color-accent-500: #cf9420;
+  --color-accent-600: #a97415;
+  --color-accent-700: #7f570f;
+
+  /* Status */
+  --color-danger-50: #fdf3f2;
+  --color-danger-200: #f6cfca;
+  --color-danger-600: #c0392b;
+  --color-danger-700: #9c2c20;
+  --color-info-50: #eff4fb;
+  --color-info-200: #c9d9f0;
+  --color-info-700: #2d5699;
+
+  /* Type */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+
+  /* Radii — cards are 2xl, controls xl */
+  --radius-card: 1rem;
+  --radius-control: 0.75rem;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Focus ring ek jagah se — har control par dohrana nahi padta */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+}

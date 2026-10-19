@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Samagra.Application.Interfaces;
 
@@ -5,6 +6,7 @@ namespace Samagra.API.Controllers;
 
 [ApiController]
 [Route("api/ai")]
+[Authorize]   // tools user ke HttpContext se user id lete hain, anonymous call ka matlab nahi
 public sealed class AiController : ControllerBase
 {
     private readonly IAiAssistant _assistant;
@@ -29,6 +31,7 @@ public sealed class AiController : ControllerBase
     }
 
     [HttpPost("index")]
+    [Authorize(Roles = "Admin")]   // indexing tokens kharch karti hai
     public async Task<IActionResult> Index(
     [FromBody] IndexRequest request,
     CancellationToken ct)

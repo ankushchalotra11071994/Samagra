@@ -8,7 +8,7 @@ import api from '../api/axios';
 export default function ProductDetailPage() {
   const { id }                  = useParams();
   const navigate                = useNavigate();
-  const { addToCart, totalItems } = useCart();
+  const { addToCart } = useCart();
   const [product, setProduct]   = useState(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState('');
@@ -19,7 +19,7 @@ export default function ProductDetailPage() {
       try {
         const res = await api.get(`/products/${id}`);
         setProduct(res.data);
-      } catch (err) {
+      } catch {
         setError('Product not found');
       } finally {
         setLoading(false);
@@ -40,42 +40,22 @@ export default function ProductDetailPage() {
     setTimeout(() => setAdded(false), 2000);
   };
 
-  if (loading) return <p className="p-8 text-gray-500">Loading...</p>;
-  if (error)   return <p className="p-8 text-red-500">{error}</p>;
+  if (loading) return <p className="p-8 text-ink-muted">Loading...</p>;
+  if (error)   return <p className="p-8 text-danger-600">{error}</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
 
-      {/* Navbar */}
-      <div className="bg-white border-b border-gray-200 px-8 py-4 
-                      flex items-center justify-between">
-        <button
-          onClick={() => navigate('/home')}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          ← Back to Products
-        </button>
-
-        {/* Cart Icon */}
-        <button
-          onClick={() => navigate('/cart')}
-          className="relative px-4 py-2 bg-blue-600 text-white 
-                     rounded-lg hover:bg-blue-700 text-sm"
-        >
-          Cart
-          {totalItems > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white 
-                             text-xs rounded-full w-5 h-5 flex items-center 
-                             justify-center">
-              {totalItems}
-            </span>
-          )}
-        </button>
-      </div>
+      <button
+        onClick={() => navigate('/home')}
+        className="mb-4 text-sm font-medium text-brand-600 hover:text-brand-700"
+      >
+        ← Back to Products
+      </button>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-white rounded-lg border border-gray-200 p-6 
+      <div className="max-w-4xl">
+        <div className="bg-white rounded-control border border-line p-6 
                         flex flex-col md:flex-row gap-8">
 
           {/* Left — Image */}
@@ -83,7 +63,7 @@ export default function ProductDetailPage() {
             <img
               src={product.imageUrl}
               alt={product.name}
-              className="w-full h-80 object-cover rounded-lg"
+              className="w-full h-80 object-cover rounded-control"
               onError={(e) => { e.target.src = '/assets/1.webp'; }}
             />
           </div>
@@ -91,22 +71,22 @@ export default function ProductDetailPage() {
           {/* Right — Details */}
           <div className="w-full md:w-1/2 flex flex-col justify-between">
             <div>
-              <p className="text-xs text-gray-500 mb-1">
+              <p className="text-xs text-ink-muted mb-1">
                 {product.categoryName}
               </p>
-              <h1 className="text-2xl font-semibold text-gray-900 mb-3">
+              <h1 className="text-2xl font-semibold text-ink mb-3">
                 {product.name}
               </h1>
-              <p className="text-gray-600 text-sm mb-4">
+              <p className="text-ink-muted text-sm mb-4">
                 {product.description || 'No description available'}
               </p>
-              <p className="text-sm text-gray-500 mb-2">
+              <p className="text-sm text-ink-muted mb-2">
                 Stock:{' '}
-                <span className="font-medium text-gray-800">
+                <span className="font-medium text-ink">
                   {product.stock}
                 </span>
               </p>
-              <p className="text-3xl font-bold text-gray-900 mb-6">
+              <p className="text-3xl font-bold text-ink mb-6">
                 ₹{product.price}
               </p>
             </div>
@@ -117,10 +97,10 @@ export default function ProductDetailPage() {
               {/* Add to Cart */}
               <button
                 onClick={handleAddToCart}
-                className={`w-full py-3 font-medium rounded-lg transition-colors
+                className={`w-full py-3 font-medium rounded-control transition-colors
                   ${added
-                    ? 'bg-green-600 text-white'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-brand-600 text-white hover:bg-brand-700'
                   }`}
               >
                 {added ? '✓ Added to Cart' : 'Add to Cart'}
@@ -129,10 +109,10 @@ export default function ProductDetailPage() {
               {/* Go to Cart */}
               <button
                 onClick={() => navigate('/cart')}
-                className="w-full py-3 border border-blue-600 text-blue-600 
-                           font-medium rounded-lg hover:bg-blue-50 transition-colors"
+                className="w-full py-3 border border-brand-600 text-brand-600 
+                           font-medium rounded-control hover:bg-brand-50 transition-colors"
               >
-                Go to Cart ({totalItems})
+                Go to Cart
               </button>
 
             </div>

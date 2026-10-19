@@ -7,7 +7,7 @@ namespace Samagra.API.Controllers;
 
 [ApiController]
 [Route("api/admin/ai-usage")]
-[Authorize ]
+[Authorize(Roles = "Admin")]
 public sealed class AiUsageController : ControllerBase
 {
     private readonly IAiUsageRecorder _recorder;

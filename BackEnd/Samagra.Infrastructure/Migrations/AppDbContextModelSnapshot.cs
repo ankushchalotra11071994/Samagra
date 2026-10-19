@@ -172,6 +172,82 @@ namespace Samagra.Infrastructure.Migrations
                     b.ToTable("AiUsages");
                 });
 
+            modelBuilder.Entity("Samagra.Domain.Entities.BulkImportJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BlobName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("FailedRows")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("SucceededRows")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalRows")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy", "CreatedAtUtc");
+
+                    b.ToTable("BulkImportJobs", (string)null);
+                });
+
+            modelBuilder.Entity("Samagra.Domain.Entities.BulkImportRowError", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId", "RowNumber");
+
+                    b.ToTable("BulkImportRowErrors", (string)null);
+                });
+
             modelBuilder.Entity("Samagra.Domain.Entities.Buyer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -499,6 +575,17 @@ namespace Samagra.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Samagra.Domain.Entities.BulkImportRowError", b =>
+                {
+                    b.HasOne("Samagra.Domain.Entities.BulkImportJob", "Job")
+                        .WithMany("RowErrors")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+                });
+
             modelBuilder.Entity("Samagra.Domain.Entities.OrderItem", b =>
                 {
                     b.HasOne("Samagra.Domain.Entities.Order", "Order")
@@ -538,6 +625,11 @@ namespace Samagra.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Samagra.Domain.Entities.BulkImportJob", b =>
+                {
+                    b.Navigation("RowErrors");
                 });
 
             modelBuilder.Entity("Samagra.Domain.Entities.Category", b =>

@@ -1,35 +1,40 @@
-using System;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 
-namespace samagra.API.Middleware
+namespace Samagra.API.Middleware;
+
+internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
-
-    public class GlobalExceptionHandler : IExceptionHandler,IMiddleware
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext context,
+        Exception exception,
+        CancellationToken ct)
     {
+        logger.LogError(exception, "Unhandled exception on {Method} {Path}",
+            context.Request.Method, context.Request.Path);
 
-     public RequestDelegate _next { get; }
-       public GlobalExceptionHandler(RequestDelegate next)
+        var (status, title) = exception switch
         {
-            _next = next;
-        }
-        public Task InvokeAsync(HttpContext context, RequestDelegate next)
+            KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
+            ArgumentException => (StatusCodes.Status400BadRequest, "Bad request"),
+            UnauthorizedAccessException => (StatusCodes.Status403Forbidden, "Forbidden"),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
+        };
+
+        context.Response.StatusCode = status;
+        await context.Response.WriteAsJsonAsync(new ProblemDetails
         {
-             _next(context);
-             return Task.CompletedTask;
-        }
+            Status = status,
+            Title = title,
+            // detail सिर्फ development में, production में leak न हो
+            Detail = context.RequestServices
+                .GetRequiredService<IHostEnvironment>()
+                .IsDevelopment()
+                    ? exception.Message
+                    : null,
+            Instance = $"{context.Request.Method} {context.Request.Path}"
+        }, ct);
 
-        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
-        {
-            if (exception is not null)
-            {
-
-                httpContext.Response.StatusCode = 500;
-                httpContext.Response.ContentType = "application/json";
-                var errorResponse = new { message = "An unexpected error occurred." };
-                return await httpContext.Response.WriteAsJsonAsync(errorResponse, cancellationToken).ContinueWith(_ => true, cancellationToken);
-            }
-
-            return  await ValueTask.FromResult(false);
-        }
+        return true;
     }
 }

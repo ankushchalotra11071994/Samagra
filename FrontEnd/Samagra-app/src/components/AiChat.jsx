@@ -92,37 +92,45 @@ export default function AiChat() {
   }
 
   return (
-    <div style={{ maxWidth: 700, margin: '40px auto', fontFamily: 'system-ui' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Samagra Assistant</h2>
-        <button onClick={handleNewChat} disabled={messages.length === 0} style={{ padding: '6px 12px' }}>
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Samagra Assistant</h1>
+          <p className="mt-1 text-sm text-ink-muted">
+            Ask about your orders or our policies.
+          </p>
+        </div>
+        <button
+          onClick={handleNewChat}
+          disabled={messages.length === 0}
+          className="rounded-control border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-muted disabled:opacity-40 disabled:hover:bg-surface"
+        >
           New chat
         </button>
       </div>
 
-      <div style={{
-        minHeight: 300, maxHeight: 500, overflowY: 'auto',
-        border: '1px solid #e5e5e5', borderRadius: 8, padding: 16, marginBottom: 12
-      }}>
+      <div className="mb-3 max-h-[60vh] min-h-[18rem] overflow-y-auto rounded-card border border-line bg-surface p-4 sm:max-h-[32rem]">
         {messages.length === 0 && (
-          <p style={{ color: '#999' }}>Ask about your orders or our policies.</p>
+          <p className="py-10 text-center text-sm text-ink-subtle">
+            Try “where is my last order?” or “what is the return window?”
+          </p>
         )}
 
         {messages.map((m, i) => (
-          <div key={i} style={{
-            display: 'flex',
-            justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
-            marginBottom: 10
-          }}>
-            <div style={{
-              maxWidth: '80%', padding: '10px 14px', borderRadius: 12,
-              background: m.role === 'user' ? '#2563eb' : '#f3f4f6',
-              color: m.role === 'user' ? 'white' : '#111',
-              whiteSpace: 'pre-wrap', lineHeight: 1.5
-            }}>
+          <div
+            key={i}
+            className={`mb-2.5 flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-[85%] whitespace-pre-wrap rounded-card px-3.5 py-2.5 text-[15px] leading-relaxed sm:max-w-[80%] ${
+                m.role === 'user'
+                  ? 'bg-brand-600 text-ink-inverse'
+                  : 'bg-surface-muted text-ink'
+              }`}
+            >
               {m.text}
               {streaming && i === messages.length - 1 && m.role === 'assistant' && (
-                <span style={{ opacity: 0.4 }}>▊</span>
+                <span className="opacity-40">▊</span>
               )}
             </div>
           </div>
@@ -130,20 +138,39 @@ export default function AiChat() {
         <div ref={bottomRef} />
       </div>
 
-      {error && <p style={{ color: '#c33' }}>{error}</p>}
+      {error && (
+        <p
+          role="alert"
+          className="mb-3 rounded-control border border-danger-200 bg-danger-50 px-4 py-3 text-sm text-danger-700"
+        >
+          {error}
+        </p>
+      )}
 
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div className="flex gap-2">
         <input
           value={question}
           onChange={e => setQuestion(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAsk()}
-          placeholder="Type your question..."
+          placeholder="Type your question…"
           disabled={streaming}
-          style={{ flex: 1, padding: 10, fontSize: 15 }}
+          className="flex-1 rounded-control border border-line bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink-subtle focus:border-brand-600 focus:outline-none disabled:bg-surface-muted"
         />
-        {streaming
-          ? <button onClick={handleStop} style={{ padding: '10px 18px' }}>Stop</button>
-          : <button onClick={handleAsk} style={{ padding: '10px 18px' }}>Ask</button>}
+        {streaming ? (
+          <button
+            onClick={handleStop}
+            className="shrink-0 rounded-control border border-line bg-surface px-5 py-3 text-sm font-bold text-ink transition-colors hover:bg-surface-muted"
+          >
+            Stop
+          </button>
+        ) : (
+          <button
+            onClick={handleAsk}
+            className="shrink-0 rounded-control bg-brand-600 px-6 py-3 text-sm font-bold text-ink-inverse transition-colors hover:bg-brand-700"
+          >
+            Ask
+          </button>
+        )}
       </div>
     </div>
   );

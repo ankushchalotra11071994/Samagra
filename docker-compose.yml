@@ -1,0 +1,40 @@
+# Local databases for Samagra. Credentials match the defaults in
+# BackEnd/Samagra.API/appsettings.json.example — keep the two in sync.
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: samagra-sqlserver
+    platform: linux/amd64        # emulated on Apple Silicon
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Password@123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+  pgvector:
+    image: pgvector/pgvector:pg17
+    container_name: samagra-pgvector
+    environment:
+      POSTGRES_PASSWORD: dev123
+      POSTGRES_DB: samagra_vectors
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+      - ./docker/init-pgvector.sql:/docker-entrypoint-initdb.d/init-pgvector.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d samagra_vectors"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: samagra-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  sqlserver-data:
+  pgvector-data:

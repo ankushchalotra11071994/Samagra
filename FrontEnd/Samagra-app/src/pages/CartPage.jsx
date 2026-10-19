@@ -9,14 +9,14 @@ export default function CartPage() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-4xl mx-auto text-center mt-20">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-4">
+      <div>
+        <div className="max-w-4xl text-center mt-20">
+          <h1 className="text-2xl font-semibold text-ink mb-4">
             Your Cart is Empty
           </h1>
           <button
-            onClick={() => navigate('/')}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            onClick={() => navigate('/home')}
+            className="px-6 py-2 bg-brand-600 text-white rounded-control hover:bg-brand-700"
           >
             Continue Shopping
           </button>
@@ -26,11 +26,11 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
+    <div>
+      <div className="max-w-4xl">
 
         {/* Header */}
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">
+        <h1 className="text-2xl font-semibold text-ink mb-6">
           Your Cart
         </h1>
 
@@ -41,22 +41,22 @@ export default function CartPage() {
             {cartItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 
+                className="bg-white rounded-control border border-line p-4 
                            flex gap-4 items-center"
               >
                 {/* Image */}
                 <img
                   src={item.imageUrl}
                   alt={item.name}
-                  className="w-20 h-20 object-cover rounded-lg"
+                  className="w-20 h-20 object-cover rounded-control"
                 />
 
                 {/* Details */}
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900 text-sm">
+                  <h3 className="font-medium text-ink text-sm">
                     {item.name}
                   </h3>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="text-ink-muted text-sm mt-1">
                     ₹{item.price}
                   </p>
                 </div>
@@ -65,8 +65,8 @@ export default function CartPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    className="w-7 h-7 rounded-full border border-gray-300 
-                               text-gray-600 hover:bg-gray-100"
+                    className="w-7 h-7 rounded-full border border-line 
+                               text-ink-muted hover:bg-surface-muted"
                   >
                     −
                   </button>
@@ -75,22 +75,22 @@ export default function CartPage() {
                   </span>
                   <button
                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    className="w-7 h-7 rounded-full border border-gray-300 
-                               text-gray-600 hover:bg-gray-100"
+                    className="w-7 h-7 rounded-full border border-line 
+                               text-ink-muted hover:bg-surface-muted"
                   >
                     +
                   </button>
                 </div>
 
                 {/* Subtotal */}
-                <p className="text-sm font-semibold text-gray-900 w-20 text-right">
+                <p className="text-sm font-semibold text-ink w-20 text-right">
                   ₹{item.price * item.quantity}
                 </p>
 
                 {/* Remove */}
                 <button
                   onClick={() => removeFromCart(item.id)}
-                  className="text-red-500 text-sm hover:underline"
+                  className="text-danger-600 text-sm hover:underline"
                 >
                   Remove
                 </button>
@@ -101,22 +101,22 @@ export default function CartPage() {
 
           {/* Right — Order Summary */}
           <div className="w-full lg:w-72">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-white rounded-control border border-line p-6">
+              <h2 className="text-lg font-semibold text-ink mb-4">
                 Order Summary
               </h2>
 
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <div className="flex justify-between text-sm text-ink-muted mb-2">
                 <span>Subtotal</span>
                 <span>₹{totalAmount}</span>
               </div>
-              <div className="flex justify-between text-sm text-gray-600 mb-4">
+              <div className="flex justify-between text-sm text-ink-muted mb-4">
                 <span>Delivery</span>
-                <span className="text-green-600">Free</span>
+                <span className="text-brand-600">Free</span>
               </div>
 
-              <div className="border-t border-gray-200 pt-4 mb-6">
-                <div className="flex justify-between font-semibold text-gray-900">
+              <div className="border-t border-line pt-4 mb-6">
+                <div className="flex justify-between font-semibold text-ink">
                   <span>Total</span>
                   <span>₹{totalAmount}</span>
                 </div>
@@ -124,8 +124,8 @@ export default function CartPage() {
 
               <button
                 onClick={() => navigate('/order')}
-                className="w-full py-3 bg-blue-600 text-white font-medium 
-                           rounded-lg hover:bg-blue-700"
+                className="w-full py-3 bg-brand-600 text-white font-medium 
+                           rounded-control hover:bg-brand-700"
               >
                 Proceed to Order
               </button>

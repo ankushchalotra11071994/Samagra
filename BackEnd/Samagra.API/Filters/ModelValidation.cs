@@ -16,10 +16,8 @@ namespace samagra.API.Filters
             
         }
 
-        public void OnActionExecuted(ActionExecutedContext context)
-        {
-            throw new NotImplementedException();
-        }
+        // Action के बाद कुछ नहीं करना — सिर्फ़ पहले validation
+        public void OnActionExecuted(ActionExecutedContext context) { }
 
         
     }
